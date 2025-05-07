@@ -109,6 +109,7 @@
         let activeTimeRangeButton = null;
         let activeChartTypeButton = null;
         let currentSelectedTimeRange = '1D'; // Default time range
+        let currentChartType = 'line';
 
         function populateAssetInfo() {
             const assetData = currentAssetDisplayData; // Use current asset
@@ -239,7 +240,6 @@
             updateChartWithRange(currentSelectedTimeRange); // Update chart with current time range for the new asset
         }
 
-
         function setActiveTimeRangeButton(button) {
             if (activeTimeRangeButton) {
                 activeTimeRangeButton.classList.remove('bg-gray-700', 'text-white');
@@ -303,15 +303,16 @@
 
             lineChartBtn.addEventListener('click', () => {
                 setActiveChartTypeButton(lineChartBtn);
-                console.log("Gráfico de líneas seleccionado.");
+                currentChartType = 'line';
+                updateChartWithRange(currentSelectedTimeRange);
             });
 
             candlestickChartBtn.addEventListener('click', () => {
                 setActiveChartTypeButton(candlestickChartBtn);
-                console.warn("Visualización de gráfico de velas seleccionada. Esta previsualización muestra un gráfico de líneas. Para velas se requiere una extensión de Chart.js.");
+                currentChartType = 'candlestick';
+                updateChartWithRange(currentSelectedTimeRange);
             });
         }
-
 
         function generateChartData(range = "1D") {
             const assetForChart = currentAssetDisplayData; // Usar el activo actual
@@ -397,6 +398,112 @@
                 prices.push(assetForChart.currentPrice);
             }
             return { labels, prices };
+        }
+
+        function generateCandlestickData(range = "1D") {
+            const assetForChart = currentAssetDisplayData;
+            const labels = [];
+            const data = [];
+            let numDataPoints = 30;
+            let base = assetForChart.currentPrice - (assetForChart.currentPrice * 0.05) + Math.random() * (assetForChart.currentPrice * 0.02);
+            let fluct = assetForChart.currentPrice * 0.01;
+            const now = new Date();
+            switch (range) {
+                case "1":
+                case "5":
+                case "15":
+                case "30":
+                    numDataPoints = parseInt(range) * 2;
+                    fluct = assetForChart.currentPrice * 0.001;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * (parseInt(range) * 60000 / numDataPoints));
+                        labels.push(date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+                        const open = base + (Math.random() - 0.5) * fluct;
+                        const close = open + (Math.random() - 0.5) * fluct * 2;
+                        const high = Math.max(open, close) + Math.random() * fluct;
+                        const low = Math.min(open, close) - Math.random() * fluct;
+                        base = close;
+                        data.push({o: open, h: high, l: low, c: close});
+                    }
+                    break;
+                case "1H":
+                case "5H":
+                    numDataPoints = 30;
+                    fluct = assetForChart.currentPrice * 0.005;
+                    const hours = parseInt(range.replace('H', ''));
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * (hours * 3600000 / numDataPoints));
+                        labels.push(date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+                        const open = base + (Math.random() - 0.5) * fluct;
+                        const close = open + (Math.random() - 0.5) * fluct * 2;
+                        const high = Math.max(open, close) + Math.random() * fluct;
+                        const low = Math.min(open, close) - Math.random() * fluct;
+                        base = close;
+                        data.push({o: open, h: high, l: low, c: close});
+                    }
+                    break;
+                case "1D":
+                    numDataPoints = 24;
+                    fluct = assetForChart.currentPrice * 0.01;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), i, 0);
+                        labels.push(date.toLocaleTimeString('es-ES', { hour: '2-digit', minute:'2-digit' }));
+                        const open = base + (Math.random() - 0.5) * fluct;
+                        const close = open + (Math.random() - 0.5) * fluct * 2;
+                        const high = Math.max(open, close) + Math.random() * fluct;
+                        const low = Math.min(open, close) - Math.random() * fluct;
+                        base = close;
+                        data.push({o: open, h: high, l: low, c: close});
+                    }
+                    break;
+                case "1W":
+                    numDataPoints = 7;
+                    fluct = assetForChart.currentPrice * 0.02;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * 24 * 3600000);
+                        labels.push(date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }));
+                        const open = base + (Math.random() - 0.5) * fluct;
+                        const close = open + (Math.random() - 0.5) * fluct * 2;
+                        const high = Math.max(open, close) + Math.random() * fluct;
+                        const low = Math.min(open, close) - Math.random() * fluct;
+                        base = close;
+                        data.push({o: open, h: high, l: low, c: close});
+                    }
+                    break;
+                case "1M":
+                    numDataPoints = 30;
+                    fluct = assetForChart.currentPrice * 0.03;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * 24 * 3600000);
+                        labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+                        const open = base + (Math.random() - 0.5) * fluct;
+                        const close = open + (Math.random() - 0.5) * fluct * 2;
+                        const high = Math.max(open, close) + Math.random() * fluct;
+                        const low = Math.min(open, close) - Math.random() * fluct;
+                        base = close;
+                        data.push({o: open, h: high, l: low, c: close});
+                    }
+                    break;
+                default:
+                    numDataPoints = 30;
+                    fluct = assetForChart.currentPrice * 0.01;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date();
+                        date.setDate(date.getDate() - (numDataPoints - 1 - i));
+                        labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+                        const open = base + (Math.random() - 0.5) * fluct;
+                        const close = open + (Math.random() - 0.5) * fluct * 2;
+                        const high = Math.max(open, close) + Math.random() * fluct;
+                        const low = Math.min(open, close) - Math.random() * fluct;
+                        base = close;
+                        data.push({o: open, h: high, l: low, c: close});
+                    }
+            }
+            // Última vela termina en el precio actual
+            if (data.length > 0) {
+                data[data.length - 1].c = assetForChart.currentPrice;
+            }
+            return {labels, data};
         }
 
         const ctx = document.getElementById('priceChart').getContext('2d');
@@ -495,10 +602,62 @@
         });
 
         function updateChartWithRange(range) {
-            const newData = generateChartData(range); // generateChartData ahora usa currentAssetDisplayData
-            priceChart.data.labels = newData.labels;
-            priceChart.data.datasets[0].data = newData.prices;
-            priceChart.update();
+            if (currentChartType === 'line') {
+                const newData = generateChartData(range);
+                priceChart.data.labels = newData.labels;
+                priceChart.data.datasets = [{
+                    label: 'Precio',
+                    data: newData.prices,
+                    borderColor: 'rgba(255, 165, 0, 1)', 
+                    backgroundColor: gradient, 
+                    fill: true,
+                    tension: 0.4, 
+                    pointRadius: 0, 
+                    pointHoverRadius: 5,
+                    pointHitRadius: 10,
+                    pointBackgroundColor: 'rgba(255, 165, 0, 1)',
+                    pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                    borderWidth: 1.5
+                }];
+                priceChart.options.scales.x.stacked = false;
+                priceChart.options.scales.y.stacked = false;
+                priceChart.options.plugins.tooltip.callbacks = {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) { label += ': '; }
+                        if (context.parsed.y !== null) {
+                            label += context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }
+                        return label;
+                    }
+                };
+                priceChart.update();
+            } else if (currentChartType === 'candlestick') {
+                const candleData = generateCandlestickData(range);
+                priceChart.data.labels = candleData.labels;
+                priceChart.data.datasets = [
+                    {
+                        type: 'bar',
+                        label: 'Vela',
+                        data: candleData.data.map(d => [d.o, d.h, d.l, d.c]),
+                        backgroundColor: candleData.data.map(d => d.c > d.o ? 'rgba(16,185,129,0.7)' : 'rgba(239,68,68,0.7)'), // verde o rojo
+                        borderColor: candleData.data.map(d => d.c > d.o ? 'rgba(16,185,129,1)' : 'rgba(239,68,68,1)'),
+                        borderWidth: 1,
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        minBarLength: 2,
+                    }
+                ];
+                priceChart.options.scales.x.stacked = false;
+                priceChart.options.scales.y.stacked = false;
+                priceChart.options.plugins.tooltip.callbacks = {
+                    label: function(context) {
+                        const d = candleData.data[context.dataIndex];
+                        return `A: ${d.o.toFixed(2)}  M: ${d.h.toFixed(2)}  m: ${d.l.toFixed(2)}  C: ${d.c.toFixed(2)}`;
+                    }
+                };
+                priceChart.update();
+            }
         }
         
         document.addEventListener('DOMContentLoaded', () => {
