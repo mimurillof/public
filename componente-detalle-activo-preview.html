@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 3.3: Detalle de Activo con Gráfico de Precios</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-300 p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-gray-800 shadow-xl rounded-lg p-4 md:p-6">
+        <!-- Sección de Información del Activo -->
+        <div id="asset-info-container" class="mb-6">
+            <!-- El contenido se inyectará aquí por JavaScript -->
+        </div>
+
+        <!-- Encabezado del Gráfico -->
+        <div id="chart-header-container" class="flex flex-wrap justify-between items-center mb-2">
+            <!-- El contenido se inyectará aquí por JavaScript -->
+        </div>
+
+        <!-- Selector de Rango de Tiempo -->
+        <div id="time-range-selector" class="flex flex-wrap space-x-1 sm:space-x-2 mb-4 items-center">
+            <!-- Los botones se inyectarán aquí por JavaScript -->
+        </div>
+
+        <!-- Área de Visualización del Gráfico de Líneas -->
+        <div class="bg-gray-800 p-0 rounded-lg"> <!-- Fondo igual al contenedor principal o ligeramente diferente si se prefiere -->
+            <div class="h-72 md:h-96">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Texto Explicativo y Advertencias -->
+        <div class="mt-6 text-center text-xs text-gray-500">
+            <p>Los datos mostrados son únicamente con fines ilustrativos y no representan información financiera en tiempo real.</p>
+        </div>
+    </div>
+
+    <script>
+        // Colección de datos de activos
+        const assetsCollection = {
+            "AAPL": {
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10 text-gray-300"><path d="M18.665 15.351c-.686.956-1.258 2.037-1.963 2.995-.634.865-1.313 1.721-2.219 1.721-.891 0-1.488-.804-2.219-1.721-.759-.956-1.416-2.089-2.147-3.16-.766-1.123-1.963-2.037-2.559-2.037-.559 0-1.258.652-1.848 1.383-.766.956-1.453 2.139-2.037 3.186-.188.34-.449.628-.766.865.634.929 1.525 1.93 2.559 2.461.963.516 2.024.723 2.873.723.849 0 1.591-.207 2.219-.652.627-.445.999-1.017 1.626-1.017.627 0 1.211.572 1.848 1.017.627.445 1.37.652 2.219.652.849 0 1.91-.207 2.873-.723 1.034-.531 1.925-1.532 2.559-2.461-.317-.237-.578-.525-.766-.865-.584-1.047-1.271-2.23-2.037-3.186-.59-.731-1.289-1.383-1.848-1.383-.596 0-1.793.914-2.559 2.037-.731 1.071-1.388 2.204-2.147 3.16zm-5.993-12.001c1.519 0 2.873-1.172 2.873-2.487 0-1.341-1.209-2.513-2.873-2.513s-2.873 1.172-2.873 2.513c0 1.315 1.354 2.487 2.873 2.487z"/></svg>`,
+                name: "Apple Inc.",
+                ticker: "AAPL",
+                market: "Nasdaq",
+                status: "Closed 09/12",
+                currentPrice: 191.24,
+                priceChangeValue: 1.29,
+                priceChangePercent: 0.68,
+                isPositiveChange: true,
+                afterClosingPrice: 191.21,
+                afterClosingChangeValue: -0.03,
+                afterClosingChangePercent: -0.02,
+                isPositiveAfterClosingChange: false,
+                priceRangeDate: "December 9th",
+                priceRangeLow: 173.66,
+                priceRangeHigh: 236.72,
+                previousClose: 174.25
+            },
+            "MSFT": {
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-300" viewBox="0 0 24 24" fill="currentColor"><path d="M11.4 22.5H2.6V13.7h8.8v8.8zm0-9.9H2.6V3.8h8.8v8.8zm9.9 9.9h-8.8V13.7h8.8v8.8zm0-9.9h-8.8V3.8h8.8v8.8z"/></svg>`,
+                name: "Microsoft Corp.",
+                ticker: "MSFT",
+                market: "Nasdaq",
+                status: "Closed 09/12",
+                currentPrice: 425.52,
+                priceChangeValue: -2.30,
+                priceChangePercent: -0.54,
+                isPositiveChange: false,
+                afterClosingPrice: 425.80,
+                afterClosingChangeValue: 0.28,
+                afterClosingChangePercent: 0.07,
+                isPositiveAfterClosingChange: true,
+                priceRangeDate: "December 9th",
+                priceRangeLow: 400.10,
+                priceRangeHigh: 430.82,
+                previousClose: 427.82
+            },
+            "GOOGL": {
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-300" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2.18 12.19,2.18C6.42,2.18 2.03,6.8 2.03,12C2.03,17.05 6.16,21.82 12.19,21.82C17.03,21.82 21.54,18.07 21.54,12.81C21.54,11.9 21.35,11.1 21.35,11.1V11.1Z"/></svg>`,
+                name: "Alphabet Inc. (Google)",
+                ticker: "GOOGL",
+                market: "Nasdaq",
+                status: "Closed 09/12",
+                currentPrice: 170.11,
+                priceChangeValue: 0.85,
+                priceChangePercent: 0.50,
+                isPositiveChange: true,
+                afterClosingPrice: 170.00,
+                afterClosingChangeValue: -0.11,
+                afterClosingChangePercent: -0.06,
+                isPositiveAfterClosingChange: false,
+                priceRangeDate: "December 9th",
+                priceRangeLow: 165.00,
+                priceRangeHigh: 175.20,
+                previousClose: 169.26
+            }
+        };
+        let currentAssetKey = Object.keys(assetsCollection)[0]; // Default to the first asset
+        let currentAssetDisplayData = assetsCollection[currentAssetKey];
+
+        const assetInfoContainer = document.getElementById('asset-info-container');
+        const chartHeaderContainer = document.getElementById('chart-header-container');
+        const timeRangeSelector = document.getElementById('time-range-selector');
+        
+        let activeTimeRangeButton = null;
+        let activeChartTypeButton = null;
+        let currentSelectedTimeRange = '1D'; // Default time range
+
+        function populateAssetInfo() {
+            const assetData = currentAssetDisplayData; // Use current asset
+            assetInfoContainer.innerHTML = `
+                <div class="flex justify-between items-start mb-1">
+                    <div class="flex items-center">
+                        <div class="mr-3">${assetData.iconSVG}</div>
+                        <div class="relative">
+                            <button id="assetDropdownButton" class="flex items-center text-xl sm:text-2xl md:text-3xl font-bold text-white hover:text-gray-300 focus:outline-none">
+                                <span id="currentAssetNameDisplay">${assetData.name} (${assetData.ticker})</span>
+                                <svg class="w-5 h-5 ml-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div id="assetDropdownMenu" class="absolute z-10 mt-2 w-72 bg-gray-700 rounded-md shadow-lg py-1 hidden">
+                                <!-- Asset options will be populated here -->
+                            </div>
+                            <div class="text-xs sm:text-sm text-gray-400">
+                                <span>${assetData.market}</span> <span class="mx-1">&middot;</span> <span>Price in USD</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs sm:text-sm text-gray-500 text-right whitespace-nowrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.415L11 9.586V6z" clip-rule="evenodd" />
+                        </svg>
+                        ${assetData.status}
+                    </div>
+                </div>
+
+                <div class="flex flex-col xl:flex-row justify-between items-start mt-3">
+                    <div class="w-full xl:w-auto mb-4 xl:mb-0">
+                        <div>
+                            <span class="text-3xl sm:text-4xl md:text-5xl font-bold text-white">${assetData.currentPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span class="${assetData.isPositiveChange ? 'text-green-400' : 'text-red-400'} ml-2 text-base sm:text-lg">
+                                ${assetData.isPositiveChange ? '+' : ''}${assetData.priceChangeValue.toFixed(2)} (${assetData.isPositiveChange ? '+' : ''}${assetData.priceChangePercent.toFixed(2)}%)
+                                ${assetData.isPositiveChange ? '▲' : '▼'}
+                            </span>
+                        </div>
+                        <div class="text-xs sm:text-sm text-gray-400 mt-1">
+                            After closing:
+                            <span class="${assetData.isPositiveAfterClosingChange ? 'text-green-400' : 'text-red-400'}">
+                                ${assetData.afterClosingPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                ${assetData.isPositiveAfterClosingChange ? '+' : ''}${assetData.afterClosingChangeValue.toFixed(2)} (${assetData.isPositiveAfterClosingChange ? '+' : ''}${assetData.afterClosingChangePercent.toFixed(2)}%)
+                                ${assetData.isPositiveAfterClosingChange ? '▲' : '▼'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="w-full xl:w-auto flex flex-col md:flex-row md:items-start md:justify-end">
+                        <div class="flex flex-col sm:flex-row md:flex-col gap-x-4 sm:gap-x-8 gap-y-2 text-left sm:text-left md:text-right mb-4 md:mb-0 md:mr-6">
+                            <div class="text-xs sm:text-sm text-gray-400">
+                                <div>Price range as of ${assetData.priceRangeDate}</div>
+                                <div class="text-white text-sm sm:text-base">${assetData.priceRangeLow.toFixed(2)} <span class="text-gray-500 mx-1">-</span> ${assetData.priceRangeHigh.toFixed(2)}</div>
+                            </div>
+                            <div class="text-xs sm:text-sm text-gray-400">
+                                <div>Closing of the previous day</div>
+                                <div class="text-white text-sm sm:text-base">${assetData.previousClose.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            populateAssetDropdown();
+            setupAssetDropdownEvents();
+        }
+
+        function populateChartHeader() {
+            const assetData = currentAssetDisplayData;
+            chartHeaderContainer.innerHTML = `
+                <div class="text-white text-sm sm:text-base">
+                    <span class="font-semibold">${assetData.name}</span>
+                    <span class="${assetData.isPositiveChange ? 'text-green-400' : 'text-red-400'} ml-1 sm:ml-2">
+                        ${assetData.currentPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ${assetData.isPositiveChange ? '+' : ''}${assetData.priceChangeValue.toFixed(2)} (${assetData.isPositiveChange ? '+' : ''}${assetData.priceChangePercent.toFixed(2)}%)
+                    </span>
+                </div>
+                <span class="text-xs sm:text-sm text-gray-400">Streaming chart</span>
+            `;
+        }
+
+        function populateAssetDropdown() {
+            const dropdownMenu = document.getElementById('assetDropdownMenu');
+            if (!dropdownMenu) return;
+            dropdownMenu.innerHTML = ''; // Clear previous items
+            Object.keys(assetsCollection).forEach(key => {
+                const asset = assetsCollection[key];
+                const item = document.createElement('a');
+                item.href = '#';
+                item.className = 'block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 hover:text-white';
+                item.textContent = `${asset.name} (${asset.ticker})`;
+                item.dataset.assetKey = key;
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    selectAsset(key);
+                    dropdownMenu.classList.add('hidden');
+                });
+                dropdownMenu.appendChild(item);
+            });
+        }
+        
+        function setupAssetDropdownEvents() {
+            const dropdownButton = document.getElementById('assetDropdownButton');
+            const dropdownMenu = document.getElementById('assetDropdownMenu');
+            if (!dropdownButton || !dropdownMenu) return;
+
+            dropdownButton.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('hidden');
+            });
+
+            // Close dropdown if clicked outside
+            document.addEventListener('click', (event) => {
+                if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        function selectAsset(assetKey) {
+            currentAssetKey = assetKey;
+            currentAssetDisplayData = assetsCollection[assetKey];
+            updateAssetDisplay();
+        }
+
+        function updateAssetDisplay() {
+            populateAssetInfo(); // This will re-render the asset info section, including the dropdown button text
+            populateChartHeader();
+            updateChartWithRange(currentSelectedTimeRange); // Update chart with current time range for the new asset
+        }
+
+
+        function setActiveTimeRangeButton(button) {
+            if (activeTimeRangeButton) {
+                activeTimeRangeButton.classList.remove('bg-gray-700', 'text-white');
+                activeTimeRangeButton.classList.add('text-gray-400', 'hover:text-gray-200');
+            }
+            button.classList.add('bg-gray-700', 'text-white');
+            button.classList.remove('text-gray-400', 'hover:text-gray-200');
+            activeTimeRangeButton = button;
+            currentSelectedTimeRange = button.dataset.range;
+        }
+
+        function setActiveChartTypeButton(button) {
+            if (activeChartTypeButton) {
+                activeChartTypeButton.classList.remove('bg-gray-700', 'text-white');
+                activeChartTypeButton.classList.add('text-gray-400', 'hover:text-gray-200');
+            }
+            button.classList.add('bg-gray-700', 'text-white');
+            button.classList.remove('text-gray-400', 'hover:text-gray-200');
+            activeChartTypeButton = button;
+        }
+        
+        function populateTimeRangeSelector() {
+            const candlestickButtonHTML = `
+                <button id="candlestickChartBtn" title="Candlestick chart" data-chart-type="candlestick" class="p-1 sm:p-1.5 rounded-md hover:bg-gray-700 transition-colors text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11h3v2H2v-2zm4 0h3v2H6v-2zm4 0h3v2h-3v-2zm4 0h3v2h-3v-2zM2 7h3v2H2V7zm4 0h3v2H6V7zm4 0h3v2h-3V7zm4 0h3v2h-3V7zM2 3h3v2H2V3zm4 0h3v2H6V3zm4 0h3v2h-3V3zm4 0h3v2h-3V3z"/></svg>
+                </button>`;
+            const lineChartButtonHTML = `
+                <button id="lineChartBtn" title="Line chart" data-chart-type="line" class="p-1 sm:p-1.5 rounded-md hover:bg-gray-700 transition-colors text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 010 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
+                </button>`;
+            
+            timeRangeSelector.innerHTML = candlestickButtonHTML + lineChartButtonHTML + `<span class="text-gray-700 mx-1">|</span>`;
+
+            const timeRanges = ["1", "5", "15", "30", "1H", "5H", "1D", "1W", "1M"];
+            timeRanges.forEach((range) => {
+                const button = document.createElement('button');
+                button.textContent = range;
+                button.dataset.range = range; 
+                button.className = `px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs sm:text-sm rounded-md hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-200`;
+                button.addEventListener('click', () => {
+                    setActiveTimeRangeButton(button);
+                    updateChartWithRange(range);
+                });
+                timeRangeSelector.appendChild(button);
+            });
+
+            const separator = document.createElement('span');
+            separator.className = "text-gray-700 mx-1";
+            separator.textContent = "|";
+            timeRangeSelector.appendChild(separator);
+
+            const fullscreenButton = document.createElement('button');
+            fullscreenButton.title = "Fullscreen";
+            fullscreenButton.className = "p-1 sm:p-1.5 rounded-md hover:bg-gray-700 transition-colors text-gray-400";
+            fullscreenButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V4a1 1 0 00-1-1H4zm10 0a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V4a1 1 0 00-1-1h-4zM4 11a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 00-1-1H4zm10 0a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 00-1-1h-4z" clip-rule="evenodd" /></svg>`;
+            timeRangeSelector.appendChild(fullscreenButton);
+
+            // Event listeners para botones de tipo de gráfico
+            const lineChartBtn = document.getElementById('lineChartBtn');
+            const candlestickChartBtn = document.getElementById('candlestickChartBtn');
+
+            lineChartBtn.addEventListener('click', () => {
+                setActiveChartTypeButton(lineChartBtn);
+                console.log("Gráfico de líneas seleccionado.");
+            });
+
+            candlestickChartBtn.addEventListener('click', () => {
+                setActiveChartTypeButton(candlestickChartBtn);
+                console.warn("Visualización de gráfico de velas seleccionada. Esta previsualización muestra un gráfico de líneas. Para velas se requiere una extensión de Chart.js.");
+            });
+        }
+
+
+        function generateChartData(range = "1D") {
+            const assetForChart = currentAssetDisplayData; // Usar el activo actual
+            const labels = [];
+            const prices = [];
+            let numDataPoints = 30; 
+            let basePrice = assetForChart.currentPrice - (assetForChart.currentPrice * 0.05) + Math.random() * (assetForChart.currentPrice * 0.02); // Precio base relativo al precio actual del activo
+            let priceFluctuation = assetForChart.currentPrice * 0.01; // Fluctuación relativa
+            const now = new Date();
+
+            switch (range) {
+                case "1": 
+                case "5": 
+                case "15": 
+                case "30": 
+                    numDataPoints = parseInt(range) * 2; 
+                    priceFluctuation = assetForChart.currentPrice * 0.001; // Menor fluctuación para minutos
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * (parseInt(range) * 60000 / numDataPoints)); 
+                        labels.push(date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+                        basePrice += (Math.random() - 0.48) * priceFluctuation;
+                        prices.push(parseFloat(basePrice.toFixed(2)));
+                    }
+                    break;
+                case "1H":
+                case "5H":
+                    numDataPoints = 30;
+                    priceFluctuation = assetForChart.currentPrice * 0.005;
+                    const hours = parseInt(range.replace('H', ''));
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * (hours * 3600000 / numDataPoints)); 
+                        labels.push(date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+                        basePrice += (Math.random() - 0.48) * priceFluctuation;
+                        prices.push(parseFloat(basePrice.toFixed(2)));
+                    }
+                    break;
+                case "1D": 
+                    numDataPoints = 24; 
+                    priceFluctuation = assetForChart.currentPrice * 0.01;
+                     for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), i, 0); 
+                        labels.push(date.toLocaleTimeString('es-ES', { hour: '2-digit', minute:'2-digit' }));
+                        basePrice += (Math.random() - 0.48) * priceFluctuation;
+                        prices.push(parseFloat(basePrice.toFixed(2)));
+                    }
+                    break;
+                case "1W":
+                    numDataPoints = 7; 
+                    priceFluctuation = assetForChart.currentPrice * 0.02;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * 24 * 3600000);
+                        labels.push(date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }));
+                        basePrice += (Math.random() - 0.48) * priceFluctuation;
+                        prices.push(parseFloat(basePrice.toFixed(2)));
+                    }
+                    break;
+                case "1M":
+                    numDataPoints = 30; 
+                    priceFluctuation = assetForChart.currentPrice * 0.03;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date(now.getTime() - (numDataPoints - 1 - i) * 24 * 3600000);
+                        labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+                        basePrice += (Math.random() - 0.48) * priceFluctuation;
+                        prices.push(parseFloat(basePrice.toFixed(2)));
+                    }
+                    break;
+                default: 
+                    numDataPoints = 30;
+                    priceFluctuation = assetForChart.currentPrice * 0.01;
+                    for (let i = 0; i < numDataPoints; i++) {
+                        const date = new Date();
+                        date.setDate(date.getDate() - (numDataPoints - 1 - i));
+                        labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+                        basePrice += (Math.random() - 0.48) * priceFluctuation;
+                        prices.push(parseFloat(basePrice.toFixed(2)));
+                    }
+            }
+            
+            if (prices.length > 0) {
+                prices[prices.length - 1] = assetForChart.currentPrice;
+            } else { 
+                labels.push(now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+                prices.push(assetForChart.currentPrice);
+            }
+            return { labels, prices };
+        }
+
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height * 0.7);
+        gradient.addColorStop(0, 'rgba(255, 165, 0, 0.5)'); 
+        gradient.addColorStop(1, 'rgba(255, 215, 0, 0.05)');
+
+        const initialChartData = generateChartData(currentSelectedTimeRange); 
+
+        const priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: initialChartData.labels,
+                datasets: [{
+                    label: 'Precio',
+                    data: initialChartData.prices,
+                    borderColor: 'rgba(255, 165, 0, 1)', 
+                    backgroundColor: gradient, 
+                    fill: true,
+                    tension: 0.4, 
+                    pointRadius: 0, 
+                    pointHoverRadius: 5,
+                    pointHitRadius: 10,
+                    pointBackgroundColor: 'rgba(255, 165, 0, 1)',
+                    pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                    borderWidth: 1.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            borderColor: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(156, 163, 175, 0.9)', // text-gray-400
+                            maxTicksLimit: 7, 
+                            font: {
+                                size: 10 
+                            }
+                        }
+                    },
+                    y: {
+                        position: 'right', 
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)', 
+                            borderColor: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(156, 163, 175, 0.9)', 
+                            callback: function(value) {
+                                return value.toLocaleString('de-DE'); 
+                            },
+                            font: {
+                                size: 10 
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false 
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(31, 41, 55, 0.9)', 
+                        titleColor: 'rgba(229, 231, 235, 1)', 
+                        bodyColor: 'rgba(209, 213, 219, 1)', 
+                        borderColor: 'rgba(255, 165, 0, 0.7)',
+                        borderWidth: 1,
+                        padding: 10,
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+
+        function updateChartWithRange(range) {
+            const newData = generateChartData(range); // generateChartData ahora usa currentAssetDisplayData
+            priceChart.data.labels = newData.labels;
+            priceChart.data.datasets[0].data = newData.prices;
+            priceChart.update();
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            populateTimeRangeSelector(); // Poblar botones de rango primero
+            updateAssetDisplay(); // Mostrar el activo por defecto y su gráfico
+
+            const defaultActiveTimeRangeButton = timeRangeSelector.querySelector(`button[data-range="${currentSelectedTimeRange}"]`);
+            if (defaultActiveTimeRangeButton) {
+                setActiveTimeRangeButton(defaultActiveTimeRangeButton);
+            }
+            
+            const lineChartBtn = document.getElementById('lineChartBtn');
+            if (lineChartBtn) {
+                setActiveChartTypeButton(lineChartBtn);
+            }
+        });
+
+    </script>
+</body>
+</html>
