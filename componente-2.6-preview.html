@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Componente 2.6: Detección IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos adicionales si fueran necesarios */
+        /* Se pueden definir colores personalizados de Tailwind aquí si se desea */
+        /*
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                anomaly: '#EF4444', // red-500
+                opportunity: '#22C55E', // green-500
+                alert: '#F59E0B', // amber-500
+              }
+            }
+          }
+        }
+        */
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <h1 class="text-2xl font-bold mb-4">Preview Componente 2.6</h1>
+
+    <!-- Contenedor del Componente 2.6 -->
+    <!--
+        Simula ocupar 5-6 columnas en pantallas grandes (lg).
+        En un layout real, estaría junto al Componente 2.5 (ej. en un flex o grid container padre)
+        o debajo de él. En pantallas pequeñas (<lg), se apilaría verticalmente.
+        Ejemplo de uso en un grid padre: <div class="grid grid-cols-1 lg:grid-cols-12 gap-4"> ... Comp 2.5 (lg:col-span-6) ... Comp 2.6 (lg:col-span-6) ... </div>
+        Ocupa todo el ancho en pantallas pequeñas por defecto.
+    -->
+    <div class="w-full lg:w-6/12 bg-white p-4 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">Componente 2.6: Detección de Anomalías y Oportunidades (IA)</h2>
+
+        <!-- Lista/Contenedor de Detecciones -->
+        <div class="space-y-3">
+
+            <!-- Ejemplo: Anomalía -->
+            <div class="flex items-start p-3 border rounded-md border-l-4 border-red-500 bg-red-50">
+                <span class="text-red-600 mr-3 text-xl">⚠️</span> <!-- Icono Indicador -->
+                <div>
+                    <p class="font-medium text-red-800">Anomalía Detectada</p>
+                    <p class="text-sm text-gray-700">Volatilidad de 'AAPL' aumentó un 35% inesperadamente en las últimas 24h.</p>
+                </div>
+            </div>
+
+            <!-- Ejemplo: Oportunidad -->
+            <div class="flex items-start p-3 border rounded-md border-l-4 border-green-500 bg-green-50">
+                <span class="text-green-600 mr-3 text-xl">💡</span> <!-- Icono Indicador -->
+                <div>
+                    <p class="font-medium text-green-800">Oportunidad Potencial</p>
+                    <p class="text-sm text-gray-700">Patrón alcista identificado en 'MSFT' con probabilidad del 70%.</p>
+                </div>
+            </div>
+
+            <!-- Ejemplo: Alerta Informativa/Warning -->
+            <div class="flex items-start p-3 border rounded-md border-l-4 border-amber-500 bg-amber-50">
+                 <span class="text-amber-600 mr-3 text-xl">ℹ️</span> <!-- Icono Indicador -->
+                <div>
+                    <p class="font-medium text-amber-800">Alerta</p>
+                    <p class="text-sm text-gray-700">El volumen de negociación de 'GOOGL' es inusualmente bajo hoy.</p>
+                </div>
+            </div>
+
+             <!-- Ejemplo: Otra Anomalía (sin icono, solo color) -->
+            <div class="p-3 border rounded-md border-l-4 border-red-500 bg-red-50">
+                 <div>
+                    <p class="font-medium text-red-800">Anomalía: Correlación Rota</p>
+                    <p class="text-sm text-gray-700">La correlación histórica entre 'XOM' y el precio del petróleo se ha desviado significativamente.</p>
+                </div>
+            </div>
+
+             <!-- Ejemplo: Otra Oportunidad (sin icono, solo color) -->
+            <div class="p-3 border rounded-md border-l-4 border-green-500 bg-green-50">
+                 <div>
+                    <p class="font-medium text-green-800">Oportunidad: Divergencia RSI</p>
+                    <p class="text-sm text-gray-700">Se detectó una divergencia alcista en el RSI para 'NVDA'.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <p class="mt-4 text-sm text-gray-600">
+        Nota: Este componente está diseñado para ocupar aproximadamente 5-6 columnas (mostrado aquí como 6/12 del ancho en pantallas 'lg').
+        Puede colocarse al lado del Componente 2.5 (Gráfico Predictivo) si el espacio lo permite, o debajo de él.
+        En pantallas pequeñas, se apilará debajo de otros componentes. Los indicadores visuales (color del borde izquierdo e icono) señalan el tipo de detección.
+    </p>
+
+</body>
+</html>

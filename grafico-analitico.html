@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financiero</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            /* Set background image */
+            background-image: url('image_fx.jpg'); /* Adjust path/extension if needed */
+            background-size: cover; /* Cover the entire viewport */
+            background-position: center center; /* Center the image */
+            background-repeat: no-repeat; /* Do not repeat the image */
+            background-attachment: fixed; /* Keep background fixed on scroll */
+
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .chart-container {
+            max-width: 800px;
+            margin: 40px auto;
+            /* Glassmorphism styles */
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 25px;
+            height: 450px;
+            position: relative;
+            border-left: 4px solid rgba(255, 255, 255, 0.5);
+            color: #fff;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 24px;
+            font-weight: 500;
+            color: #ffffff;
+            margin: 0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .chart-dropdown {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #ffffff;
+            cursor: pointer;
+            margin-right: auto;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.4-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: .65em auto;
+            padding-right: 30px;
+        }
+        .chart-dropdown option {
+             background-color: #333;
+             color: #fff;
+        }
+
+        .chart-options {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+        }
+        .chart-options-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+        }
+        .chart-options-button:hover {
+            color: #ffffff;
+        }
+
+        /* Estilos para el menú de filtro de tiempo */
+        .time-filter-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            /* Glassmorphism for dropdown menu */
+            background-color: rgba(50, 50, 50, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            z-index: 100;
+            width: 220px;
+            display: none;
+            margin-top: 5px;
+        }
+        .time-filter-menu.active {
+            display: block;
+        }
+        .time-filter-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .time-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .time-filter-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #eee;
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .time-filter-item:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .time-filter-item.active {
+            background-color: rgba(139, 92, 246, 0.7);
+            color: white;
+        }
+        /* Add styles for the canvas */
+        #analyticChart {
+            max-height: 340px;
+            width: 100%;
+        }
+        .tooltip {
+            position: absolute;
+            /* Glassmorphism for tooltip */
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.2s;
+            z-index: 10;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        .tooltip-date {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #9ca3af;
+        }
+        .tooltip-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .tooltip-color {
+            width: 10px;
+            height: 10px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+        .tooltip-label {
+            margin-right: 8px;
+            color: #9ca3af;
+        }
+        .tooltip-value {
+            font-weight: bold;
+        }
+
+        /* Estilos para la temática de finanzas (si aplica) */
+        .financial-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 12px;
+            border-radius: 4px;
+            margin-left: 10px;
+            background-color: #10b981;
+            color: white;
+        }
+        .financial-indicator.negative {
+            background-color: #ef4444;
+        }
+
+        /* Mejora de la responsividad para dispositivos móviles */
+        @media (max-width: 768px) {
+            .chart-container {
+                padding: 15px;
+                height: auto; /* Adjust height automatically */
+                margin: 20px auto;
+            }
+            .chart-title {
+                font-size: 20px;
+            }
+            .chart-options {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .chart-dropdown {
+                margin-bottom: 10px;
+                width: 100%; /* Full width on small screens */
+                margin-right: 0;
+            }
+            #analyticChart {
+                 max-height: 300px; /* Adjust canvas height on mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <div class="chart-header">
+            <h1 class="chart-title">Rendimiento de Inversión</h1>
+            <div class="chart-options">
+                <select class="chart-dropdown" id="chartTypeDropdown">
+                    <option value="investment">Rendimiento de Inversión</option>
+                    <option value="portfolio">Análisis de Cartera</option>
+                    <option value="market">Tendencias del Mercado</option>
+                </select>
+                <button class="chart-options-button" id="timeFilterButton">⋯</button>
+                <!-- Menú de filtro de tiempo -->
+                <div class="time-filter-menu" id="timeFilterMenu">
+                    <div class="time-filter-title">Filtrar por intervalo de tiempo</div>
+                    <div class="time-filter-grid">
+                        <div class="time-filter-item" data-filter="segundos">Segundos</div>
+                        <div class="time-filter-item" data-filter="minutos">Minutos</div>
+                        <div class="time-filter-item" data-filter="horas">Horas</div>
+                        <div class="time-filter-item" data-filter="dia">Día</div>
+                        <div class="time-filter-item" data-filter="mes">Mes</div>
+                        <div class="time-filter-item" data-filter="año">Año</div>
+                        <div class="time-filter-item active" data-filter="Q">Trimestre</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <canvas id="analyticChart"></canvas>
+        <div id="tooltip" class="tooltip"></div>
+    </div>
+
+    <script>
+        // Encapsulate chart logic in an IIFE
+        (function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                // --- Configuration ---
+                const config = {
+                    colors: {
+                        revenue: '#8b5cf6', // Morado
+                        target: '#eab308'   // Amarillo
+                    },
+                    defaultTimeFilter: 'Q',
+                    defaultChartType: 'investment',
+                    timeFilterTypes: ['segundos', 'minutos', 'horas', 'dia', 'mes', 'año', 'Q'],
+                    chartTitles: {
+                        'investment': 'Rendimiento de Inversión',
+                        'portfolio': 'Análisis de Cartera',
+                        'market': 'Tendencias del Mercado'
+                    },
+                    multipliers: {
+                        'investment': { revenue: 4.2, target: 3.5 },
+                        'portfolio': { revenue: 3.8, target: 3.2 },
+                        'market': { revenue: 2.5, target: 2.1 }
+                    }
+                };
+
+                // --- DOM Elements ---
+                const elements = {
+                    timeFilterButton: document.getElementById('timeFilterButton'),
+                    timeFilterMenu: document.getElementById('timeFilterMenu'),
+                    timeFilterItems: document.querySelectorAll('.time-filter-item'),
+                    chartTypeDropdown: document.getElementById('chartTypeDropdown'),
+                    chartTitle: document.querySelector('.chart-title'),
+                    tooltipEl: document.getElementById('tooltip'),
+                    chartCanvas: document.getElementById('analyticChart'),
+                    chartContainer: document.querySelector('.chart-container') // Needed for tooltip bounds
+                };
+
+                // --- Application State ---
+                const state = {
+                    currentTimeFilter: config.defaultTimeFilter,
+                    currentChartType: config.defaultChartType,
+                    dataCache: {},
+                    chartInstance: null
+                };
+
+                // --- Data Generation ---
+                function generateConsistentData() {
+                    const baseData = { revenue: [], target: [] };
+                    for (let i = 0; i < 12; i++) { // Base of 12 points
+                        baseData.revenue.push(Math.random() * 10);
+                        baseData.target.push(5 + Math.random() * 3);
+                    }
+
+                    config.timeFilterTypes.forEach(filter => {
+                        state.dataCache[filter] = {
+                            labels: getLabelsForFilter(filter),
+                            revenue: getDataSegmentForFilter(baseData.revenue, filter),
+                            target: getDataSegmentForFilter(baseData.target, filter)
+                        };
+                    });
+                }
+
+                function getLabelsForFilter(filter) {
+                    // (Keep existing switch statement for labels)
+                    switch(filter) {
+                        case 'segundos': return ['0s', '10s', '20s', '30s', '40s', '50s', '60s'];
+                        case 'minutos': return ['0m', '10m', '20m', '30m', '40m', '50m', '60m'];
+                        case 'horas': return ['1h', '2h', '3h', '4h', '5h', '6h', '7h', '8h'];
+                        case 'dia': return ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+                        case 'mes': return ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                        case 'año': return ['2018', '2019', '2020', '2021', '2022', '2023', '2024'];
+                        case 'Q': return ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4'];
+                        default: return ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4']; // Default to Quarter
+                    }
+                }
+
+                function getDataSegmentForFilter(baseData, filter) {
+                    const length = getLabelsForFilter(filter).length;
+                    // Simple slicing/concatenating for consistent-ish random data per filter
+                    return baseData.slice(0, length % baseData.length)
+                               .concat(baseData.slice(0, Math.min(length, baseData.length)))
+                               .slice(0, length); // Ensure exact length
+                }
+
+                // --- UI Setup ---
+                function setupTimeFilterMenu() {
+                    elements.timeFilterButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        elements.timeFilterMenu.classList.toggle('active');
+                    });
+
+                    document.addEventListener('click', (e) => {
+                        if (!elements.timeFilterMenu.contains(e.target) && e.target !== elements.timeFilterButton) {
+                            elements.timeFilterMenu.classList.remove('active');
+                        }
+                    });
+
+                    elements.timeFilterItems.forEach(item => {
+                        item.addEventListener('click', function() {
+                            elements.timeFilterItems.forEach(i => i.classList.remove('active'));
+                            this.classList.add('active');
+                            state.currentTimeFilter = this.dataset.filter;
+                            updateChartData();
+                            elements.timeFilterMenu.classList.remove('active');
+                        });
+                    });
+                }
+
+                function setupChartTypeDropdown() {
+                    elements.chartTypeDropdown.addEventListener('change', function() {
+                        state.currentChartType = this.value;
+                        updateChartTitle();
+                        updateChartData(); // Update data/multipliers based on type
+                    });
+                }
+
+                function updateChartTitle() {
+                    elements.chartTitle.textContent = config.chartTitles[state.currentChartType] || 'Dashboard Financiero';
+                }
+
+                // --- Chart Logic ---
+                function createDatasetConfig(label, color, data, fill = true) {
+                    return {
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: `${color}1A`, // Use 1A for ~10% opacity hex
+                        fill: fill,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: color,
+                        pointHoverBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointHoverBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 2,
+                    };
+                }
+
+                function updateChartData() {
+                    if (!state.chartInstance) return;
+
+                    try {
+                        const timeFilter = state.currentTimeFilter;
+                        const cachedData = state.dataCache[timeFilter];
+                        if (!cachedData) {
+                            console.error(`No cached data for filter: ${timeFilter}`);
+                            return;
+                        }
+
+                        state.chartInstance.data.labels = cachedData.labels;
+                        state.chartInstance.data.datasets[0].data = cachedData.revenue;
+                        state.chartInstance.data.datasets[1].data = cachedData.target;
+
+                        // Update multipliers stored in options for the tooltip callback
+                        state.chartInstance.options.plugins.tooltip.callbacks.multipliers =
+                            config.multipliers[state.currentChartType] || { revenue: 1, target: 1 };
+
+                        state.chartInstance.update();
+                    } catch (error) {
+                        console.error('Error updating chart data:', error);
+                    }
+                }
+
+                // --- Tooltip ---
+                function externalTooltipHandler(context) {
+                    const { chart, tooltip } = context;
+                    const tooltipEl = elements.tooltipEl;
+
+                    if (tooltip.opacity === 0) {
+                        tooltipEl.style.opacity = 0;
+                        return;
+                    }
+
+                    // Set Text
+                    if (tooltip.body) {
+                        const dataPoints = tooltip.dataPoints;
+                        const date = new Date(); // Note: Still using current date, not data point date
+                        const formattedDate = formatDateByFilter(date, state.currentTimeFilter);
+                        let tooltipContent = `<div class="tooltip-date">${formattedDate}</div>`;
+
+                        const revenueValue = dataPoints.find(dp => dp.dataset.label === 'Rendimiento');
+                        const targetValue = dataPoints.find(dp => dp.dataset.label === 'Benchmark');
+                        const currentMultipliers = chart.options.plugins.tooltip.callbacks.multipliers; // Get from options
+
+                        if (revenueValue) {
+                            tooltipContent += `
+                            <div class="tooltip-item">
+                                <div class="tooltip-color" style="background-color: ${config.colors.revenue}"></div>
+                                <span class="tooltip-label">Rendimiento</span>
+                                <span class="tooltip-value">$${(revenueValue.parsed.y * currentMultipliers.revenue).toFixed(2)}K</span>
+                            </div>`;
+                        }
+                        if (targetValue) {
+                            tooltipContent += `
+                            <div class="tooltip-item">
+                                <div class="tooltip-color" style="background-color: ${config.colors.target}"></div>
+                                <span class="tooltip-label">Benchmark</span>
+                                <span class="tooltip-value">$${(targetValue.parsed.y * currentMultipliers.target).toFixed(2)}K</span>
+                            </div>`;
+                        }
+                        tooltipEl.innerHTML = tooltipContent;
+                    }
+
+                    // Set Position
+                    const canvasRect = chart.canvas.getBoundingClientRect();
+                    const tooltipWidth = tooltipEl.offsetWidth;
+                    const tooltipHeight = tooltipEl.offsetHeight;
+
+                    // Use pageXOffset and pageYOffset for scroll position
+                    const lineX = canvasRect.left + window.pageXOffset + tooltip.caretX;
+                    const canvasRight = canvasRect.left + window.pageXOffset + canvasRect.width;
+                    const canvasLeft = canvasRect.left + window.pageXOffset;
+                    const canvasTop = canvasRect.top + window.pageYOffset;
+                    const canvasBottom = canvasRect.top + window.pageYOffset + canvasRect.height;
+
+                    const spaceRight = canvasRight - lineX;
+                    const spaceLeft = lineX - canvasLeft;
+                    const offset = 15;
+
+                    let left;
+                    if (spaceRight >= tooltipWidth + offset || spaceRight >= spaceLeft) {
+                        left = lineX + offset;
+                    } else {
+                        left = lineX - tooltipWidth - offset;
+                    }
+
+                    let top = canvasRect.top + window.pageYOffset + tooltip.caretY - tooltipHeight / 2;
+
+                    // Boundary checks (relative to viewport + scroll)
+                    top = Math.max(canvasTop + 5, top); // Prevent going above canvas top
+                    top = Math.min(canvasBottom - tooltipHeight - 5, top); // Prevent going below canvas bottom
+                    left = Math.max(canvasLeft + 5, left); // Prevent going left of canvas
+                    left = Math.min(canvasRight - tooltipWidth - 5, left); // Prevent going right of canvas
+
+                    tooltipEl.style.opacity = 1;
+                    tooltipEl.style.left = left + 'px';
+                    tooltipEl.style.top = top + 'px';
+                }
+
+                function formatDateByFilter(date, filter) {
+                    // (Keep existing switch statement for date formatting)
+                     const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                    switch(filter) {
+                        case 'segundos': return `${date.toLocaleTimeString('es-ES')}`;
+                        case 'minutos': return `Hoy, ${date.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})}`;
+                        case 'horas': return `Hoy, ${date.toLocaleTimeString('es-ES', {hour: '2-digit'})}h`;
+                        case 'dia': return `Semana ${getWeekNumber(date)}, ${date.toLocaleDateString('es-ES', {weekday: 'short'})}`;
+                        case 'mes': return `${date.getFullYear()}, ${date.toLocaleDateString('es-ES', {month: 'long'})}`;
+                        case 'año': return `Año ${date.getFullYear()}`;
+                        case 'Q': const quarter = Math.floor((date.getMonth() / 3)) + 1; return `Q${quarter} ${date.getFullYear()}`;
+                        default: return date.toLocaleDateString('es-ES', options);
+                    }
+                }
+
+                function getWeekNumber(date) {
+                    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+                    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000; // Use getTime() for safety
+                    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+                }
+
+                // --- Chart Initialization ---
+                function initializeChart() {
+                    generateConsistentData();
+                    const initialData = state.dataCache[state.currentTimeFilter];
+                    if (!initialData) {
+                        console.error("Failed to get initial data for chart.");
+                        return;
+                    }
+
+                    const ctx = elements.chartCanvas.getContext('2d');
+                    state.chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: initialData.labels,
+                            datasets: [
+                                createDatasetConfig('Rendimiento', config.colors.revenue, initialData.revenue, true),
+                                createDatasetConfig('Benchmark', config.colors.target, initialData.target, false)
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    enabled: false,
+                                    external: externalTooltipHandler,
+                                    // Store multipliers here so callback can access them
+                                    callbacks: {
+                                        multipliers: config.multipliers[state.currentChartType] || { revenue: 1, target: 1 }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false, drawBorder: false },
+                                    ticks: { font: { size: 12 }, color: 'rgba(255, 255, 255, 0.7)' }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: false },
+                                    ticks: {
+                                        callback: value => '$' + value + 'K',
+                                        font: { size: 12 },
+                                        color: 'rgba(255, 255, 255, 0.7)',
+                                        stepSize: 2
+                                    },
+                                    max: 10 // Consider making this dynamic based on data
+                                }
+                            },
+                            interaction: { intersect: false, mode: 'index' },
+                            elements: { line: { borderWidth: 3 } }
+                        },
+                        plugins: [verticalLinePlugin] // Register custom plugin instance
+                    });
+
+                    // Initial UI setup
+                    updateChartTitle();
+                    setupTimeFilterMenu();
+                    setupChartTypeDropdown();
+                }
+
+                // --- Custom Plugin ---
+                const verticalLinePlugin = {
+                    id: 'verticalLine',
+                    afterDraw: (chart, args, options) => {
+                        const tooltip = chart.tooltip;
+                        if (tooltip && tooltip.getActiveElements().length) {
+                            const activeElement = tooltip.getActiveElements()[0];
+                            const ctx = chart.ctx;
+                            const x = activeElement.element.x;
+                            const topY = chart.scales.y.top;
+                            const bottomY = chart.scales.y.bottom;
+
+                            // Draw line
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.moveTo(x, topY);
+                            ctx.lineTo(x, bottomY);
+                            ctx.lineWidth = 1;
+                            // Use a lighter color for dark background
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                            ctx.setLineDash([5, 5]);
+                            ctx.stroke();
+                            ctx.restore();
+
+                            // Draw points
+                            chart.data.datasets.forEach((dataset, i) => {
+                                if (activeElement.index < dataset.data.length) {
+                                    const yValue = dataset.data[activeElement.index];
+                                    const y = chart.scales.y.getPixelForValue(yValue);
+                                    if (y >= topY && y <= bottomY) {
+                                        ctx.save();
+                                        ctx.beginPath();
+                                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                                        ctx.fillStyle = dataset.borderColor;
+                                        ctx.fill();
+                                        ctx.strokeStyle = '#fff'; // White border for points
+                                        ctx.lineWidth = 2;
+                                        ctx.stroke();
+                                        ctx.restore();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                };
+
+                // --- Start ---
+                initializeChart();
+
+            });
+        })(); // End of IIFE
+    </script>
+</body>
+</html>

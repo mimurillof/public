@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 2.2: Generador de Reportes</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        /* Estilo adicional para el fondo del modal si es necesario */
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <h1 class="text-2xl font-bold mb-4">Dashboard Principal (Ejemplo)</h1>
+    <p class="mb-6">Contenido de la página principal...</p>
+
+    <!-- Contenedor principal para Alpine.js y el botón de activación -->
+    <div x-data="{ isModalOpen: false }">
+        <!-- Botón para abrir el modal -->
+        <button @click="isModalOpen = true" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Generar Reporte Personalizado
+        </button>
+
+        <!-- Componente 2.2: Modal Generador de Reportes -->
+        <div
+            x-show="isModalOpen"
+            x-cloak
+            @keydown.escape.window="isModalOpen = false"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Fondo del modal (Overlay) -->
+                <div
+                    x-show="isModalOpen"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                    @click="isModalOpen = false"
+                    aria-hidden="true"
+                ></div>
+
+                <!-- Contenedor para centrar el contenido del modal -->
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <!-- Contenido del Modal -->
+                <div
+                    x-show="isModalOpen"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    class="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg"
+                    x-data="{
+                        // Función para manejar el envío del formulario
+                        generateReport(event) {
+                            const formData = new FormData(event.target);
+                            const data = Object.fromEntries(formData.entries());
+                            // Recopilar checkboxes de métricas
+                            data.metrics = formData.getAll('metrics');
+
+                            console.log('Parámetros del Reporte:', data);
+                            alert('Reporte solicitado. Revisa la consola para ver los parámetros.');
+                            // Aquí iría la lógica para enviar 'data' al backend
+                            // Por ejemplo: fetch('/api/generate-report', { method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'} });
+                            this.isModalOpen = false; // Cerrar modal después de enviar
+                        }
+                    }"
+                >
+                    <div class="flex justify-between items-center pb-3">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                            Componente 2.2: Generar Reporte Personalizado
+                        </h3>
+                        <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-500">
+                            <span class="sr-only">Cerrar</span>
+                            <!-- Icono X (Heroicons) -->
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Formulario de Configuración -->
+                    <form @submit.prevent="generateReport($event)" class="space-y-4 mt-4">
+
+                        <!-- Rango de Fechas -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Rango de Fechas</label>
+                            <div class="flex space-x-2 mt-1">
+                                <input type="date" name="startDate" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2">
+                                <span class="self-center text-gray-500">-</span>
+                                <input type="date" name="endDate" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2">
+                            </div>
+                        </div>
+
+                        <!-- Métricas Deseadas -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Métricas a Incluir</label>
+                            <div class="mt-1 space-y-2">
+                                <div class="flex items-start">
+                                    <input id="metric-return" name="metrics" type="checkbox" value="total_return" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="metric-return" class="ml-2 block text-sm text-gray-900">Retorno Total</label>
+                                </div>
+                                <div class="flex items-start">
+                                    <input id="metric-volatility" name="metrics" type="checkbox" value="volatility" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="metric-volatility" class="ml-2 block text-sm text-gray-900">Volatilidad</label>
+                                </div>
+                                <div class="flex items-start">
+                                    <input id="metric-sharpe" name="metrics" type="checkbox" value="sharpe_ratio" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="metric-sharpe" class="ml-2 block text-sm text-gray-900">Sharpe Ratio</label>
+                                </div>
+                                <!-- Añadir más métricas según sea necesario -->
+                            </div>
+                        </div>
+
+                        <!-- Nivel de Detalle -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nivel de Detalle</label>
+                            <div class="mt-1 space-y-2">
+                                <div class="flex items-center">
+                                    <input id="detail-general" name="detailLevel" type="radio" value="general" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    <label for="detail-general" class="ml-2 block text-sm text-gray-900">General</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="detail-asset-class" name="detailLevel" type="radio" value="asset_class" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    <label for="detail-asset-class" class="ml-2 block text-sm text-gray-900">Por Clase de Activo</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="detail-individual" name="detailLevel" type="radio" value="individual_asset" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    <label for="detail-individual" class="ml-2 block text-sm text-gray-900">Por Activo Individual</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tipo de Gráficos (Opcional) -->
+                        <div>
+                            <label for="chartType" class="block text-sm font-medium text-gray-700">Tipo de Gráfico Preferido (Opcional)</label>
+                            <select id="chartType" name="chartType" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                <option value="">Ninguno Específico</option>
+                                <option value="line">Línea</option>
+                                <option value="bar">Barras</option>
+                                <option value="pie">Torta</option>
+                            </select>
+                        </div>
+
+                        <!-- Formato de Salida -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Formato de Salida</label>
+                            <div class="mt-1 flex space-x-4">
+                                <div class="flex items-center">
+                                    <input id="format-screen" name="outputFormat" type="radio" value="screen" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    <label for="format-screen" class="ml-2 block text-sm text-gray-900">Visualización en Pantalla</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="format-pdf" name="outputFormat" type="radio" value="pdf" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    <label for="format-pdf" class="ml-2 block text-sm text-gray-900">PDF</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="format-csv" name="outputFormat" type="radio" value="csv" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    <label for="format-csv" class="ml-2 block text-sm text-gray-900">CSV</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="pt-4 flex justify-end space-x-2">
+                            <button type="button" @click="isModalOpen = false" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Generar Reporte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> <!-- Fin del contenedor Alpine.js -->
+
+</body>
+</html>

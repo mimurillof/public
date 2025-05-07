@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Overview</title>
+
+    <!-- React, ReactDOM, Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Material UI -->
+    <script src="https://unpkg.com/@mui/material@5/umd/material-ui.development.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        body {
+            background-color: #000000; /* Fondo negro */
+            color: #FFFFFF; /* Color principal blanco */
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alinear arriba */
+            min-height: 100vh;
+        }
+
+        .portfolioContainer {
+            background-color: #1A1A1A; /* Fondo del contenedor */
+            padding: 20px 25px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 1000px; /* Ancho máximo ajustado */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .headerRow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px; /* Más espacio */
+        }
+
+        .portfolioTitle {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #FFFFFF;
+        }
+
+        /* Estilos Filtros */
+        .filterButtons .MuiToggleButtonGroup-root {
+            background-color: transparent; /* Sin fondo de grupo */
+            border: none;
+        }
+
+        .filterButtons .MuiToggleButton-root {
+            color: #FFFFFF !important; /* Forzar color blanco */
+            border: 1px solid #424242; /* Borde gris */
+            padding: 5px 15px; /* Padding ajustado */
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: none; /* Sin mayúsculas */
+            border-radius: 20px; /* Redondeado */
+            margin-left: 8px; /* Espacio entre botones */
+            min-width: 80px;
+            height: 32px; /* Altura fija */
+        }
+
+        .filterButtons .MuiToggleButton-root:hover {
+            background-color: #2a2a2a;
+            border-color: #5a5a5a;
+            color: #FFFFFF; /* Ya es blanco */
+        }
+
+        .filterButtons .MuiToggleButton-root.Mui-selected {
+            background-color: #007AFF; /* Azul brillante */
+            color: #FFFFFF; /* Ya es blanco */
+            border-color: #007AFF; /* Borde azul */
+            box-shadow: none;
+        }
+         .filterButtons .MuiToggleButton-root.Mui-selected:hover {
+             background-color: #0056b3;
+             border-color: #0056b3;
+         }
+
+        /* Estilos Tabla */
+        .MuiTableContainer-root {
+            background-color: transparent; /* Sin fondo blanco */
+        }
+
+        .MuiTable-root {
+            min-width: 650px; /* Ancho mínimo para evitar compresión excesiva */
+        }
+
+        .MuiTableCell-head {
+            color: #FFFFFF !important; /* Forzar color blanco */
+            font-weight: 500;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #2C2C2E; /* Línea divisoria tenue */
+            padding: 8px 16px; /* Padding cabecera */
+            text-transform: uppercase; /* Cabeceras en mayúsculas */
+            opacity: 0.7; /* Añadir opacidad para diferenciar de body */
+        }
+
+        .MuiTableCell-body {
+            color: #FFFFFF !important; /* Forzar color blanco */
+            border-bottom: 1px solid #2C2C2E; /* Línea divisoria tenue */
+            padding: 10px 16px; /* Padding cuerpo */
+            font-size: 0.9rem;
+            vertical-align: middle; /* Alinear verticalmente */
+        }
+
+        .stockCell {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Espacio entre icono y texto */
+        }
+
+        .stockIcon {
+            font-size: 1.5rem; /* Tamaño icono */
+            color: #FFFFFF !important; /* Forzar color blanco */
+            opacity: 0.7; /* Añadir opacidad para diferenciar */
+        }
+
+        .changeCellPositive {
+            color: #4CAF50; /* Verde */
+        }
+
+        .changeCellNegative {
+            color: #FF5252; /* Rojo */
+        }
+
+        .miniChartCell {
+            width: 80px; /* Ancho fijo para gráfico */
+            height: 30px; /* Altura fija para gráfico */
+            /* Centrar el canvas si es necesario, aunque debería llenar el div */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Estilos para el brillo del gráfico */
+        .miniChartCell canvas {
+             /* Aplicar filtro directamente al canvas */
+             filter: none; /* Reset por defecto */
+             transition: filter 0.2s ease-in-out; /* Transición suave */
+        }
+        .miniChartCell.positive canvas {
+            filter: drop-shadow(0 0 3px #00FF7F); /* Brillo verde vivo */
+        }
+        .miniChartCell.negative canvas {
+            filter: drop-shadow(0 0 3px #FF1A1A); /* Brillo rojo vivo */
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .headerRow {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .filterButtons {
+                width: 100%;
+                display: flex;
+                justify-content: flex-start; /* Alinear botones a la izquierda en móvil */
+            }
+             .filterButtons .MuiToggleButton-root {
+                 margin-left: 0;
+                 margin-right: 8px;
+             }
+            .portfolioContainer {
+                padding: 15px;
+            }
+             .MuiTableCell-body, .MuiTableCell-head {
+                 padding: 6px 10px;
+                 font-size: 0.8rem;
+             }
+             .stockIcon {
+                 font-size: 1.2rem;
+             }
+             .miniChartCell {
+                 width: 60px;
+                 height: 25px;
+             }
+        }
+         @media (max-width: 480px) {
+             .filterButtons .MuiToggleButton-root {
+                 min-width: 60px;
+                 padding: 4px 10px;
+                 font-size: 0.7rem;
+             }
+         }
+
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const {
+            Typography, Button, ToggleButtonGroup, ToggleButton,
+            Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Icon
+        } = MaterialUI;
+
+        // --- Componente Mini Gráfico ---
+        const MiniLineChart = ({ data, isPositive }) => {
+            const chartRef = useRef(null);
+            const chartInstanceRef = useRef(null);
+
+            useEffect(() => {
+                if (chartRef.current && data && data.length > 1) {
+                    const ctx = chartRef.current.getContext('2d');
+                    const color = isPositive ? '#00FF7F' : '#FF1A1A'; // Verde vivo / Rojo vivo
+                    const dataLength = data.length;
+
+                    // Destruir gráfico anterior
+                    if (chartInstanceRef.current) {
+                        chartInstanceRef.current.destroy();
+                    }
+
+                    chartInstanceRef.current = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Array(dataLength).fill(''), // Sin etiquetas visibles
+                            datasets: [{
+                                data: data,
+                                borderColor: color, // Usar color vivo
+                                borderWidth: 1.5,
+                                pointRadius: (context) => {
+                                    // Mostrar solo el último punto
+                                    return context.dataIndex === dataLength - 1 ? 3 : 0; // Radio del último punto
+                                },
+                                pointBackgroundColor: color, // Color del último punto igual al de la línea
+                                pointBorderColor: color, // Borde del último punto igual al de la línea
+                                pointHoverRadius: 0, // Deshabilitar hover en puntos
+                                tension: 0.3,
+                                fill: false, // Sin relleno para mini gráfico
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { display: false }, // Ocultar eje X
+                                y: { display: false }  // Ocultar eje Y
+                            },
+                            plugins: {
+                                legend: { display: false }, // Ocultar leyenda
+                                tooltip: { enabled: false } // Deshabilitar tooltip
+                            },
+                            animation: false, // Sin animación para rendimiento
+                            layout: {
+                                padding: { top: 2, bottom: 2, left: 1, right: 4 } // Ajustar padding para el punto final
+                            }
+                        }
+                    });
+                }
+                 // Cleanup
+                return () => {
+                    if (chartInstanceRef.current) {
+                        chartInstanceRef.current.destroy();
+                        chartInstanceRef.current = null;
+                    }
+                };
+            }, [data, isPositive]); // Dependencias
+
+            return <canvas ref={chartRef}></canvas>;
+        };
+
+        // --- Datos de Ejemplo ---
+        const initialStocks = [
+          { symbol: "TSLA", icon: "electric_car", lastPrice: 26000.21, change: 3.4, marketCap: 8.1, volume: 7.5, trendData: [100, 110, 105, 120, 130, 145, 160] },
+          { symbol: "AAPL", icon: "apple", lastPrice: 32000.21, change: -1.2, marketCap: 12.5, volume: 9.8, trendData: [150, 145, 148, 140, 135, 130, 128] },
+          { symbol: "GOOG", icon: "travel_explore", lastPrice: 2850.50, change: 1.8, marketCap: 10.2, volume: 6.1, trendData: [2800, 2820, 2810, 2830, 2850, 2840, 2850] },
+          { symbol: "MSFT", icon: "important_devices", lastPrice: 310.75, change: -0.5, marketCap: 15.3, volume: 11.2, trendData: [315, 312, 313, 310, 308, 309, 310] },
+          { symbol: "AMZN", icon: "shopping_cart", lastPrice: 3400.00, change: 2.1, marketCap: 9.5, volume: 8.0, trendData: [3300, 3350, 3340, 3380, 3410, 3400, 3400] },
+          { symbol: "NVDA", icon: "memory", lastPrice: 850.10, change: 5.2, marketCap: 6.8, volume: 10.5, trendData: [780, 800, 790, 820, 840, 830, 850] },
+          { symbol: "META", icon: "facebook", lastPrice: 330.40, change: -2.8, marketCap: 7.1, volume: 9.1, trendData: [350, 345, 340, 335, 330, 332, 330] },
+          { symbol: "JPM", icon: "account_balance", lastPrice: 155.60, change: 0.9, marketCap: 4.5, volume: 5.5, trendData: [150, 152, 151, 154, 156, 155, 155] },
+        ];
+
+        // --- Componente Principal ---
+        const PortfolioOverview = () => {
+            const [filter, setFilter] = useState('All'); // Estado inicial del filtro
+
+            const handleFilterChange = (event, newFilter) => {
+                if (newFilter !== null) {
+                    setFilter(newFilter);
+                }
+            };
+
+            // Filtrar acciones basado en el estado 'filter'
+            const filteredStocks = useMemo(() => {
+                switch (filter) {
+                    case 'Gainers':
+                        return initialStocks.filter(stock => stock.change > 0);
+                    case 'Losers':
+                        return initialStocks.filter(stock => stock.change < 0);
+                    case 'All':
+                    default:
+                        return initialStocks;
+                }
+            }, [filter]); // Recalcular solo si 'filter' cambia
+
+            return (
+                <div className="portfolioContainer">
+                    <div className="headerRow">
+                        <Typography variant="h6" component="div" className="portfolioTitle">
+                            Portfolio Overview
+                        </Typography>
+                        <div className="filterButtons">
+                            <ToggleButtonGroup
+                                value={filter}
+                                exclusive
+                                onChange={handleFilterChange}
+                                aria-label="Portfolio Filter"
+                                size="small"
+                            >
+                                <ToggleButton value="All" aria-label="All Stocks">All</ToggleButton>
+                                <ToggleButton value="Gainers" aria-label="Gainers">Gainers</ToggleButton>
+                                <ToggleButton value="Losers" aria-label="Losers">Losers</ToggleButton>
+                            </ToggleButtonGroup>
+                        </div>
+                    </div>
+
+                    {/* Usar TableContainer para posible scroll horizontal en móvil */}
+                    <TableContainer component={Paper} sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
+                        <Table aria-label="portfolio overview table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Stock</TableCell>
+                                    <TableCell align="right">Last Price</TableCell>
+                                    <TableCell align="right">Change</TableCell>
+                                    <TableCell align="right">Market Cap</TableCell>
+                                    <TableCell align="right">Volume</TableCell>
+                                    <TableCell align="center">Last 7 days</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {filteredStocks.map((stock) => {
+                                    const isPositive = stock.change > 0; // Determinar si es positivo
+                                    return (
+                                        <TableRow key={stock.symbol} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableCell component="th" scope="row">
+                                                <div className="stockCell">
+                                                    {/* Usar Icon de MUI si el nombre coincide, sino un placeholder */}
+                                                    <Icon className="stockIcon">{stock.icon || 'inventory_2'}</Icon>
+                                                    {stock.symbol}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell align="right">${stock.lastPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                                            <TableCell align="right" className={isPositive ? 'changeCellPositive' : 'changeCellNegative'}>
+                                                {isPositive ? '+' : ''}{stock.change.toFixed(1)}%
+                                            </TableCell>
+                                            <TableCell align="right">{stock.marketCap.toFixed(1)}%</TableCell>
+                                            <TableCell align="right">{stock.volume.toFixed(1)}%</TableCell>
+                                            <TableCell align="center">
+                                                {/* Añadir clase 'positive' o 'negative' al div contenedor */}
+                                                <div className={`miniChartCell ${isPositive ? 'positive' : 'negative'}`}>
+                                                    <MiniLineChart data={stock.trendData} isPositive={isPositive} />
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </div>
+            );
+        };
+
+        // Renderizar componente
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(
+            <React.StrictMode>
+                <PortfolioOverview />
+            </React.StrictMode>
+        );
+    </script>
+</body>
+</html>

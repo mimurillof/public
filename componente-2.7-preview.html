@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 2.7: Previsualización Análisis Detallado</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Plotly.js CDN -->
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <style>
+        /* Estilo adicional si es necesario, aunque Tailwind debería ser suficiente */
+        body { font-family: sans-serif; }
+        /* Asegurar que el contenedor del gráfico tenga altura */
+        #treemapDiv { min-height: 500px; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+
+    <div class="w-full bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">
+            Componente 2.7: Análisis Detallado de Composición y Atribución de Rendimiento (IA)
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Visualización interactiva (Treemap) mostrando la composición del portafolio (tamaño) y la contribución al rendimiento (color). Pase el cursor sobre un segmento para ver detalles.
+        </p>
+
+        <!-- Contenedor para el gráfico Plotly -->
+        <div id="treemapDiv"></div>
+    </div>
+
+    <script>
+        // Datos de ejemplo para el Treemap
+        // Representan jerarquía: Portafolio -> Sector -> Activo
+        const ids = [
+            "Portafolio",
+            "Tecnología", "Finanzas", "Consumo", // Sectores
+            "AAPL", "MSFT", // Activos Tecnología
+            "JPM", "BAC", // Activos Finanzas
+            "AMZN", "WMT"  // Activos Consumo
+        ];
+        const labels = [
+            "Portafolio Total",
+            "Tecnología", "Finanzas", "Consumo Cíclico",
+            "Apple (AAPL)", "Microsoft (MSFT)",
+            "JPMorgan (JPM)", "Bank of America (BAC)",
+            "Amazon (AMZN)", "Walmart (WMT)"
+        ];
+        const parents = [
+            "", // Portafolio es la raíz
+            "Portafolio", "Portafolio", "Portafolio", // Sectores hijos de Portafolio
+            "Tecnología", "Tecnología", // Activos hijos de Tecnología
+            "Finanzas", "Finanzas", // Activos hijos de Finanzas
+            "Consumo", "Consumo" // Activos hijos de Consumo
+        ];
+        // Valores representan el Peso (%) en el portafolio
+        const values = [
+            100, // Peso total (no se usa directamente en treemap, pero es la suma)
+            40, 25, 35, // Pesos de los Sectores (suman 100 relativo al portafolio)
+            25, 15, // Pesos de Activos en Tecnología (suman 40)
+            10, 15, // Pesos de Activos en Finanzas (suman 25)
+            20, 15  // Pesos de Activos en Consumo (suman 35)
+        ];
+        // Customdata representa la Contribución al Rendimiento (%)
+        const contribution = [
+            1.5, // Contribución total (calculada, no mostrada directamente en color)
+            0.8, -0.3, 1.0, // Contribución por Sector
+            0.6, 0.2, // Contribución por Activo (Tecnología)
+            -0.1, -0.2, // Contribución por Activo (Finanzas)
+            0.7, 0.3 // Contribución por Activo (Consumo)
+        ];
+
+        // Generar colores basados en la contribución (simplificado)
+        const colors = contribution.map(c => {
+            if (c > 0.1) return 'rgba(76, 175, 80, 0.8)'; // Verde para positivo fuerte
+            if (c > 0) return 'rgba(165, 214, 167, 0.8)'; // Verde claro para positivo leve
+            if (c < -0.1) return 'rgba(239, 83, 80, 0.8)'; // Rojo para negativo fuerte
+            if (c < 0) return 'rgba(239, 154, 154, 0.8)'; // Rojo claro para negativo leve
+            return 'rgba(189, 189, 189, 0.8)'; // Gris para neutro o niveles agregados si no tienen contribución directa
+        });
+        // Ajustar color del nodo raíz si es necesario
+        colors[0] = 'rgba(158, 158, 158, 0.8)'; // Gris más oscuro para la raíz
+
+        // Definir la traza del Treemap
+        const trace = {
+            type: "treemap",
+            ids: ids,
+            labels: labels,
+            parents: parents,
+            values: values, // Tamaño basado en el peso
+            customdata: contribution.map(c => `${c.toFixed(2)}%`), // Formatear contribución para hover
+            textinfo: "label+value%", // Mostrar etiqueta y % del padre
+            hoverinfo: "label+customdata", // Mostrar etiqueta y contribución al pasar el cursor
+            hovertemplate: '<b>%{label}</b><br>Peso: %{value}%<br>Contribución: %{customdata}<extra></extra>', // Tooltip personalizado
+            pathbar: { visible: true }, // Mostrar barra de navegación jerárquica
+            marker: {
+                colors: colors, // Colores basados en la contribución
+                line: { width: 1, color: '#fff' } // Líneas blancas entre bloques
+            },
+            // Ajustar niveles para que los activos sean hojas
+             branchvalues: 'total', // El valor del padre es la suma de los hijos
+             tiling: { packing: 'squarify' } // Algoritmo de disposición
+        };
+
+        // Definir el layout del gráfico
+        const layout = {
+            title: 'Desglose de Composición (Peso) y Contribución al Rendimiento',
+            margin: { t: 50, l: 10, r: 10, b: 10 }, // Ajustar márgenes
+            autosize: true // Hacer que el gráfico se ajuste al tamaño del contenedor
+            // font: { size: 10 } // Ajustar tamaño de fuente si es necesario
+        };
+
+        // Renderizar el gráfico
+        const graphDiv = document.getElementById('treemapDiv');
+        Plotly.newPlot(graphDiv, [trace], layout, {responsive: true}); // Añadir config responsive
+
+        // Añadir listener para redimensionar en cambios de tamaño de ventana
+        window.addEventListener('resize', function() {
+            Plotly.Plots.resize(graphDiv);
+        });
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Inversiones</title>
+    
+    <!-- Material UI y Fuentes -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    
+    <!-- React y ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Material UI -->
+    <script src="https://unpkg.com/@material-ui/core@4.12.3/umd/material-ui.development.js"></script>
+    
+    <!-- Estilos -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: white;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        #root {
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .portfolio-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px 30px; /* Padding vertical reducido de 25px a 15px */
+            background-color: #000000;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px; /* Cambiado de 20px a 0 */
+            margin-top: 5px; /* Añadido margen superior */
+        }
+        
+        .title {
+            font-size: 24px; /* Reducido de 28px */
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .buttons-container {
+            display: flex;
+            gap: 8px; /* Reducido de 10px */
+        }
+        
+        .action-button {
+            background-color: #2d2d2d;
+            border: 1px solid white; /* Añadido borde blanco */
+            border-radius: 50px;
+            padding: 8px 16px; /* Reducido de 10px 20px */
+            color: white;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px; /* Reducido de 14px */
+        }
+        
+        .action-button:hover {
+            background-color: #3d3d3d;
+            transform: translateY(-2px);
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+        
+        .stock-card {
+            background-color: #252525;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+        }
+        
+        .stock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stock-card.positive-glow {
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+            border: 1px solid rgba(76, 175, 80, 0.7);
+        }
+        
+        .stock-card.negative-glow {
+            box-shadow: 0 0 15px rgba(244, 67, 54, 0.5);
+            border: 1px solid rgba(244, 67, 54, 0.7);
+        }
+        
+        .stock-price {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .stock-change {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .stock-change.positive {
+            color: #4caf50;
+        }
+        
+        .stock-change.negative {
+            color: #f44336;
+        }
+        
+        .stock-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .stock-logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .stock-logo {
+            width: 40px; /* Doble del tamaño anterior */
+            height: 40px; /* Doble del tamaño anterior */
+            margin-bottom: 4px; /* Espacio entre logo y símbolo */
+            filter: brightness(0) invert(1) grayscale(100%) brightness(1.5); /* Fuerza el color a blanco/gris claro y ajusta brillo */
+            opacity: 0.85; /* Ligeramente más opaco para mejor contraste */
+        }
+        
+        .stock-symbol {
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+        
+        .stock-units {
+            font-size: 12px;
+            color: #aaaaaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        @media (max-width: 1100px) {
+            .cards-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .portfolio-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        
+        // Logos de las empresas
+        const stockLogos = {
+            AAPL: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
+            TSLA: 'https://www.freepnglogos.com/uploads/tesla-logo-png-20.png',
+            MSFT: 'https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg',
+            GOOG: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
+            AMZN: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg'
+        };
+        
+        // Datos de las acciones
+        const stocksData = [
+            { symbol: 'AAPL', name: 'Apple', price: 172.13, change: +0.45, units: 10 },
+            { symbol: 'TSLA', name: 'Tesla', price: 52.13, change: -1.23, units: 20 },
+            { symbol: 'MSFT', name: 'Microsoft', price: 172.13, change: +0.45, units: 15 },
+            { symbol: 'GOOG', name: 'Google', price: 172.13, change: -1.23, units: 5 },
+            { symbol: 'AMZN', name: 'Amazon', price: 172.13, change: +0.45, units: 8 }
+        ];
+        
+        // Componente StockCard
+        function StockCard({ stock }) {
+            const isPositive = stock.change > 0;
+            const cardClass = isPositive ? 
+                "stock-card positive-glow" : 
+                "stock-card negative-glow";
+            
+            return (
+                <div className={cardClass}>
+                    <div className="stock-price">
+                        ${stock.price.toFixed(2)}
+                    </div>
+                    <div className={`stock-change ${isPositive ? 'positive' : 'negative'}`}>
+                        {isPositive ? '↑' : '↓'} {Math.abs(stock.change)}%
+                    </div>
+                    <div className="stock-info">
+                        <div className="stock-logo-symbol-container"> 
+                            <img src={stockLogos[stock.symbol]} alt={stock.name} className="stock-logo" />
+                            <span className="stock-symbol">{stock.symbol}</span>
+                        </div>
+                        <div className="stock-units">
+                            UNITS {stock.units}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Componente Dashboard
+        function Dashboard() {
+            const [scrollPosition, setScrollPosition] = useState(0);
+            const carouselRef = useRef(null);
+            
+            const scrollLeft = () => {
+                if (carouselRef.current) {
+                    const newPosition = Math.max(0, scrollPosition - 300);
+                    carouselRef.current.scrollTo({
+                        left: newPosition,
+                        behavior: 'smooth'
+                    });
+                    setScrollPosition(newPosition);
+                }
+            };
+            
+            const scrollRight = () => {
+                if (carouselRef.current) {
+                    const maxScroll = carouselRef.current.scrollWidth - carouselRef.current.clientWidth;
+                    const newPosition = Math.min(maxScroll, scrollPosition + 300);
+                    carouselRef.current.scrollTo({
+                        left: newPosition,
+                        behavior: 'smooth'
+                    });
+                    setScrollPosition(newPosition);
+                }
+            };
+            
+            // Controlar el scroll manual
+            const handleScroll = () => {
+                if (carouselRef.current) {
+                    setScrollPosition(carouselRef.current.scrollLeft);
+                }
+            };
+            
+            useEffect(() => {
+                const carousel = carouselRef.current;
+                if (carousel) {
+                    carousel.addEventListener('scroll', handleScroll);
+                    return () => carousel.removeEventListener('scroll', handleScroll);
+                }
+            }, []);
+            
+            return (
+                <div className="portfolio-container">
+                    <div className="header">
+                        <div className="title">My Portfolio</div>
+                        <div className="buttons-container">
+                            <button className="action-button">
+                                <span>See all</span>
+                            </button>
+                            <button className="action-button">
+                                <span className="material-icons">settings</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="carousel-container">
+                        <button 
+                            className="carousel-button left" 
+                            onClick={scrollLeft}
+                            aria-label="Desplazar a la izquierda"
+                        >
+                            <span className="material-icons">chevron_left</span>
+                        </button>
+                        
+                        <div className="cards-carousel" ref={carouselRef}>
+                            {stocksData.map(stock => (
+                                <StockCard key={stock.symbol} stock={stock} />
+                            ))}
+                        </div>
+                        
+                        <button 
+                            className="carousel-button right" 
+                            onClick={scrollRight}
+                            aria-label="Desplazar a la derecha"
+                        >
+                            <span className="material-icons">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Componente App
+        function App() {
+            return (
+                <Dashboard />
+            );
+        }
+        
+        // Renderización
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+    
+    <style>
+        /* Estilos adicionales para el carrusel */
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        
+        .cards-carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+            padding: 10px 5px; /* Padding vertical reducido */
+            gap: 15px; /* Espacio entre tarjetas reducido */
+            height: 140px; /* Altura ajustada a 120px (tarjeta) + 20px (padding) */
+        }
+        
+        .cards-carousel::-webkit-scrollbar {
+            display: none; /* Chrome, Safari y Opera */
+        }
+        
+        .cards-carousel .stock-card {
+            flex: 0 0 auto;
+            min-width: 120px; /* Reducido */
+            width: 120px; /* Ancho reducido */
+            height: 120px; /* Altura reducida (cuadrado) */
+            margin-right: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px; /* Padding reducido */
+            border-radius: 16px; /* Reducido ligeramente */
+            background-color: #222222; /* Fondo ligeramente más oscuro como en la imagen */
+        }
+        
+        /* Ajustes para el contenido de las tarjetas */
+        .stock-price {
+            font-size: 16px; /* Reducido */
+            margin-top: 0;
+            margin-bottom: 2px; /* Espacio reducido */
+            letter-spacing: -0.5px;
+        }
+        
+        .stock-change {
+            font-size: 11px; /* Reducido */
+            margin-top: 0;
+            margin-bottom: auto; /* Empuja el resto del contenido hacia abajo */
+        }
+        
+        .stock-info {
+            margin-top: auto; /* Empuja esta sección hacia la parte inferior */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end; /* Alinea los elementos hijos en la parte inferior */
+        }
+        
+        .stock-logo-symbol-container { /* Nuevo contenedor para logo y símbolo */
+            display: flex;
+            flex-direction: column; /* Apila logo y símbolo verticalmente */
+            align-items: flex-start; /* Alinea a la izquierda */
+        }
+        
+        .stock-logo {
+            width: 30px; /* Reducido */
+            height: 30px; /* Reducido */
+            margin-bottom: 3px; /* Espacio reducido */
+            filter: brightness(0) invert(1) grayscale(100%) brightness(1.5); /* Fuerza el color a blanco/gris claro y ajusta brillo */
+            opacity: 0.85; /* Ligeramente más opaco para mejor contraste */
+        }
+        
+        .stock-symbol {
+            font-size: 11px; /* Reducido */
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            color: #bbbbbb; /* Color ligeramente más claro */
+        }
+        
+        .stock-units {
+            font-size: 9px; /* Reducido */
+            color: #888888; /* Color más tenue */
+        }
+        
+        .carousel-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px; /* Reducido */
+            height: 35px; /* Reducido */
+            border-radius: 50%;
+            background-color: rgba(45, 45, 45, 0.8);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .carousel-button:hover {
+            background-color: rgba(60, 60, 60, 0.9);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .carousel-button.left {
+            left: -5px;
+        }
+        
+        .carousel-button.right {
+            right: -5px;
+        }
+        
+        .carousel-button .material-icons {
+            font-size: 20px; /* Reducido */
+        }
+        
+        @media (max-width: 1100px) {
+            .cards-carousel .stock-card {
+                width: calc(33% - 13.33px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .cards-carousel .stock-card {
+                width: calc(50% - 10px);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .cards-carousel .stock-card {
+                width: calc(100% - 20px);
+                min-width: 200px;
+            }
+        }
+    </style>
+</body>
+</html>

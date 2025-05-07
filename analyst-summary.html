@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Asegúrate de que el título refleje el nuevo contenido -->
+    <title>Componente 1.2: Resumen Ejecutivo del Analista (con PDF)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Puedes añadir estilos personalizados aquí si es necesario */
+        body {
+            background-color: #f0f4f8; /* Un fondo ligero para la página */
+            padding: 2rem;
+        }
+        /* Asegurar que el iframe ocupe el espacio vertical asignado */
+        iframe {
+            display: block; /* Evita espacios extra debajo */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Título del componente actualizado -->
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Componente 1.2: Resumen Ejecutivo del Analista (con PDF)</h2>
+
+    <!-- Contenedor Principal del Componente -->
+    <!-- Eliminadas clases de ancho responsivo (w-full, md:w-*, lg:w-*). -->
+    <!-- Añadido tamaño fijo w-[503px] y h-[632px]. mx-auto se mantiene para centrar si el padre es más ancho. -->
+    <!-- Nota: h-[632px] es una altura fija, el contenido podría desbordarse. -->
+    <div class="w-[503px] h-[632px] mx-auto bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200 flex flex-col">
+
+        <!-- Información del Analista (Opcional) - Foto a la izquierda del nombre -->
+        <!-- Añadido flex-shrink-0 para que esta parte no se encoja si el contenedor es flex col -->
+        <div class="flex items-center mb-4 pb-4 border-b border-gray-200 space-x-4 flex-shrink-0">
+            <!-- Foto del Analista (Ahora primero) -->
+            <img
+                src="https://via.placeholder.com/150/771796" alt="Foto del Analista"
+                class="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover flex-shrink-0"
+            >
+            <!-- Nombre y Título del Analista (Ahora segundo) -->
+            <div>
+                <p class="text-sm font-medium text-gray-900">Elena García</p>
+                <p class="text-xs text-gray-500">Analista Senior de Inversiones</p>
+            </div>
+        </div>
+
+        <!-- Área de Visualización del PDF -->
+        <!-- Añadido flex-grow para que el iframe ocupe el espacio restante en el contenedor flex col -->
+        <!-- Eliminada altura fija anterior (h-[70vh] md:h-[80vh]) para que se ajuste al espacio disponible -->
+        <div class="w-full flex-grow">
+             <iframe
+                src="https://files.elfsightcdn.com/_assets/pdf-embed/files/research.pdf"
+                width="100%"
+                height="100%"
+                style="border: none;"
+                title="Resumen Ejecutivo PDF">
+                Tu navegador no soporta iframes. Puedes descargar el PDF <a href="https://files.elfsightcdn.com/_assets/pdf-embed/files/research.pdf">aquí</a>.
+            </iframe>
+        </div>
+
+    </div>
+
+</body>
+</html>

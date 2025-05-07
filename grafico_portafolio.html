@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendimiento del Portafolio de Inversiones</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-filler"></script> <!-- Necesario para el relleno avanzado -->
+    <!-- Agregar el plugin de zoom -->
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.0"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px; /* Añadir padding para evitar que el gráfico toque los bordes en pantallas pequeñas */
+            box-sizing: border-box;
+        }
+        .chart-container {
+            width: 100%; /* Usar 100% para mejor adaptabilidad */
+            max-width: 1200px; /* Aumentar el ancho máximo de 900px a 1200px */
+            height: 800px; /* Aumentar altura de 500px a 800px para más espacio vertical */
+            background-color: #fff;
+            padding: 40px; /* Aumentar padding de 30px a 40px */
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin: 20px auto; /* Añadir margen automático horizontal y margen vertical */
+            overflow-y: auto; /* Permitir scroll vertical si el contenido es muy grande */
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px; /* Reducir ligeramente el margen inferior del título */
+        }
+        /* Asegurar que el canvas sea responsivo dentro del contenedor */
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 500px !important; /* Aumentar la altura del canvas de 400px a 500px */
+            margin-bottom: 15px; /* Añadir margen inferior al canvas */
+        }
+        /* Estilos para los botones de control */
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px; /* Aumentar margen superior */
+        }
+        .chart-controls button {
+            padding: 8px 16px;
+            background-color: #4c6ef5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .chart-controls button:hover {
+            background-color: #3b5bdb;
+        }
+        /* Indicador de que el zoom está activo */
+        .zoom-info {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 12px;
+            color: #666;
+            padding: 4px 8px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            display: none;
+        }
+        .zoom-info.active {
+            display: block;
+        }
+        /* Estilos para el selector de rango de fechas */
+        .date-range-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px; /* Aumentar margen inferior */
+            align-items: center;
+        }
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .date-inputs label {
+            font-size: 14px;
+            color: #555;
+        }
+        .date-inputs input {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .date-presets {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+        /* Estilos para las opciones de visualización */
+        .visibility-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0; /* Aumentar margen vertical */
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        .visibility-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .visibility-toggle:hover {
+            background-color: #e9ecef;
+        }
+        .visibility-toggle.hidden {
+            opacity: 0.5;
+        }
+        .color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        /* Estilos para el área de resaltado */
+        .highlight-controls {
+            margin-top: 25px; /* Aumentar margen superior */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .highlight-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .highlight-info {
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+        }
+        /* Estilo para áreas resaltadas */
+        .highlighted-region {
+            background-color: rgba(255, 243, 205, 0.5);
+            border: 1px dashed #ffc107;
+            position: absolute;
+            pointer-events: none; /* Para que no interfiera con los eventos del ratón */
+        }
+        /* Botones de modo */
+        .mode-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .mode-button {
+            padding: 6px 12px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .mode-button.active {
+            background-color: #4c6ef5;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .date-range-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            .date-presets {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <h1>Rendimiento del Portafolio</h1>
+        
+        <!-- Selector de rango de fechas -->
+        <div class="date-range-selector">
+            <div class="date-inputs">
+                <label for="startDate">Desde:</label>
+                <input type="date" id="startDate">
+                <label for="endDate">Hasta:</label>
+                <input type="date" id="endDate">
+                <button id="applyDateRange">Aplicar</button>
+            </div>
+            <div class="date-presets">
+                <button id="preset-1m">1 Mes</button>
+                <button id="preset-3m">3 Meses</button>
+                <button id="preset-6m">6 Meses</button>
+                <button id="preset-ytd">Año actual</button>
+                <button id="preset-all" class="active">Todo</button>
+            </div>
+        </div>
+        
+        <!-- Opciones de visualización -->
+        <div class="visibility-options">
+            <div class="visibility-toggle" data-series="0">
+                <span class="color-indicator" style="background-color: rgb(54, 162, 235);"></span>
+                <span>Valor del Portafolio</span>
+            </div>
+            <div class="visibility-toggle" data-series="1">
+                <span class="color-indicator" style="background-color: rgb(255, 159, 64);"></span>
+                <span>Valor Total Invertido</span>
+            </div>
+            <div class="visibility-toggle" data-series="2">
+                <span class="color-indicator" style="background-color: rgb(153, 102, 255);"></span>
+                <span>Ganancia/Pérdida Total</span>
+            </div>
+        </div>
+        
+        <div class="zoom-info" id="zoomInfo">Zoom activo - Usa la rueda del ratón o pellizca para zoom, arrastra para desplazarte</div>
+        <canvas id="portfolioChart"></canvas>
+        
+        <!-- Controles de resaltado -->
+        <div class="highlight-controls">
+            <div class="highlight-buttons">
+                <button id="startHighlight">Iniciar Resaltado</button>
+                <button id="clearHighlight">Limpiar Resaltados</button>
+                <button id="compareMode" class="mode-button">Modo Comparación</button>
+            </div>
+            <p class="highlight-info" id="highlightInfo">Para resaltar: Haz clic en "Iniciar Resaltado" y luego selecciona un área en el gráfico.</p>
+        </div>
+        
+        <div class="chart-controls">
+            <button id="resetZoom">Restablecer Zoom</button>
+            <button id="zoomX">Zoom Horizontal</button>
+            <button id="zoomY">Zoom Vertical</button>
+        </div>
+    </div>
+
+    <script>
+        const labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        // Datos modificados para mostrar mayores diferencias entre ganancias y pérdidas
+        const portfolioValueData = [10000, 9200, 9800, 11400, 11700, 10600, 11900, 12500, 12100, 11500, 13000, 14000]; 
+        const investmentValueData = [10000, 10000, 10000, 10500, 10500, 10500, 11000, 11000, 11000, 11500, 11500, 11500]; 
+        
+        // Calcular la ganancia/pérdida para cada mes
+        const profitLossData = portfolioValueData.map((value, index) => {
+            return value - investmentValueData[index];
+        });
+
+        // Función para determinar el color del área de relleno
+        const getFillColor = (context) => {
+            const chart = context.chart;
+            const {ctx, chartArea} = chart;
+            if (!chartArea) {
+                // Esto puede ocurrir antes de que el gráfico esté completamente renderizado
+                return 'rgba(0, 0, 0, 0)'; // Transparente por defecto
+            }
+
+            const portfolioValue = context.dataset.data[context.dataIndex];
+            // Asumiendo que el dataset de inversión es el siguiente (índice 1)
+            const investmentValue = chart.data.datasets[1].data[context.dataIndex];
+
+            if (portfolioValue >= investmentValue) {
+                return 'rgba(75, 192, 192, 0.3)'; // Verde/Turquesa claro para ganancias
+            } else {
+                return 'rgba(255, 99, 132, 0.3)'; // Rojo/Rosa claro para pérdidas
+            }
+        };
+
+        // Crear un gradiente para el color de fondo segmentado
+        // Nota: Chart.js v3+ maneja esto mejor con 'segment', pero para un relleno simple entre líneas,
+        // podemos intentar colorear el dataset principal y usar 'fill' para apuntar al otro.
+        // Una forma más robusta implica crear un dataset específico para el relleno o usar plugins.
+        // Aquí, modificaremos el backgroundColor del dataset principal para que sea dinámico.
+
+        const ctx = document.getElementById('portfolioChart').getContext('2d');
+        const portfolioChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Valor del Portafolio (€)',
+                    data: portfolioValueData,
+                    borderColor: 'rgb(54, 162, 235)', 
+                    borderWidth: 2.5, // Línea más gruesa
+                    tension: 0.1,
+                    fill: {
+                       target: 1, 
+                       above: 'rgba(75, 192, 192, 0.5)', // Mayor opacidad para ganancias
+                       below: 'rgba(255, 99, 132, 0.5)'  // Mayor opacidad para pérdidas
+                    },
+                    pointRadius: 4, // Puntos ligeramente más grandes
+                    pointHoverRadius: 7,
+                    order: 1 
+                },
+                {
+                    label: 'Valor Total Invertido (€)',
+                    data: investmentValueData,
+                    borderColor: 'rgb(255, 159, 64)', 
+                    borderWidth: 2.5, // Línea más gruesa
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)', // Sombreado más visible
+                    tension: 0.1,
+                    fill: 'origin', 
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    order: 2 
+                },
+                {
+                    label: 'Ganancia/Pérdida Total (€)',
+                    data: profitLossData,
+                    borderColor: 'rgb(153, 102, 255)', 
+                    borderWidth: 3, // Línea más gruesa para destacar más
+                    pointBackgroundColor: function(context) {
+                        const value = context.dataset.data[context.dataIndex];
+                        // Puntos con colores más intensos
+                        return value >= 0 ? 'rgb(46, 204, 113)' : 'rgb(231, 76, 60)';
+                    },
+                    // Tamaño del punto varía según la magnitud del valor
+                    pointRadius: function(context) {
+                        const value = Math.abs(context.dataset.data[context.dataIndex]);
+                        // Puntos más grandes para valores más extremos
+                        return value > 1000 ? 6 : (value > 500 ? 5 : 4);
+                    },
+                    pointHoverRadius: 8,
+                    tension: 0.1,
+                    fill: {
+                        target: 'origin',
+                        above: 'rgba(46, 204, 113, 0.4)', // Verde más intenso para ganancias
+                        below: 'rgba(231, 76, 60, 0.4)'   // Rojo más intenso para pérdidas
+                    },
+                    order: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Permitir que el contenedor controle el aspect ratio
+                plugins: {
+                    filler: { // Asegurarse que el plugin de relleno está habilitado (aunque suele estarlo por defecto)
+                        propagate: true
+                    },
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                }
+                                return label;
+                            },
+                            // Añadir un footer al tooltip para mostrar la ganancia/pérdida
+                            footer: function(tooltipItems) {
+                                let portfolioValue = 0;
+                                let investmentValue = 0;
+
+                                tooltipItems.forEach(function(tooltipItem) {
+                                    // Asume que el primer dataset es 'Valor del Portafolio' y el segundo 'Valor Total Invertido'
+                                    if (tooltipItem.datasetIndex === 0) {
+                                        portfolioValue = tooltipItem.parsed.y;
+                                    } else if (tooltipItem.datasetIndex === 1) {
+                                        investmentValue = tooltipItem.parsed.y;
+                                    }
+                                });
+
+                                const difference = portfolioValue - investmentValue;
+                                const resultType = difference >= 0 ? 'Ganancia' : 'Pérdida';
+                                const formattedDifference = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(difference);
+
+                                return `${resultType}: ${formattedDifference}`;
+                            }
+                        }
+                    },
+                    // Configuración del plugin de zoom
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                            threshold: 5,
+                            onPanStart: function() {
+                                document.getElementById('zoomInfo').classList.add('active');
+                            }
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'xy',
+                            onZoomStart: function() {
+                                document.getElementById('zoomInfo').classList.add('active');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                           callback: function(value) {
+                               return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+                           }
+                        },
+                        // Ajustar el rango para mostrar mejor las diferencias
+                        suggestedMin: Math.min(...portfolioValueData) * 0.9,
+                        suggestedMax: Math.max(...portfolioValueData) * 1.05
+                    },
+                    // Añadir un segundo eje Y para la ganancia/pérdida
+                    y1: {
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false // Solo mostrar la cuadrícula para el eje principal
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+                            },
+                            // Mostrar más líneas de referencia
+                            count: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Ganancia/Pérdida'
+                        },
+                        // Ajustar el rango para la escala de ganancia/pérdida
+                        suggestedMin: Math.min(...profitLossData) * 1.2,
+                        suggestedMax: Math.max(...profitLossData) * 1.2
+                    },
+                    x: {
+                       title: {
+                           display: true,
+                           text: 'Mes'
+                       }
+                    }
+                },
+                interaction: {
+                    mode: 'index', // Cambiado a 'index' para mejor comportamiento del tooltip con múltiples líneas
+                    intersect: false
+                }
+            }
+        });
+
+        // Añadir interactividad a los botones de control
+        document.getElementById('resetZoom').addEventListener('click', function() {
+            portfolioChart.resetZoom();
+            document.getElementById('zoomInfo').classList.remove('active');
+        });
+
+        document.getElementById('zoomX').addEventListener('click', function() {
+            portfolioChart.zoom(1.2, 'x');
+            document.getElementById('zoomInfo').classList.add('active');
+        });
+
+        document.getElementById('zoomY').addEventListener('click', function() {
+            portfolioChart.zoom(1.2, 'y');
+            document.getElementById('zoomInfo').classList.add('active');
+        });
+
+        // Detectar si hay zoom activo
+        function checkZoomStatus() {
+            if (portfolioChart.getZoomLevel() > 1) {
+                document.getElementById('zoomInfo').classList.add('active');
+            } else {
+                document.getElementById('zoomInfo').classList.remove('active');
+            }
+        }
+
+        portfolioChart.options.plugins.zoom.zoom.onZoom = checkZoomStatus;
+        portfolioChart.options.plugins.zoom.pan.onPan = checkZoomStatus;
+
+        // Crear fechas para los datos mensuales (para facilitar el filtrado)
+        const currentYear = new Date().getFullYear();
+        const dataDates = labels.map((month, index) => {
+            // Convertir etiquetas de mes a fechas reales (usando el año actual)
+            const monthIndex = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].indexOf(month);
+            return new Date(currentYear, monthIndex, 1);
+        });
+
+        // Inicializar selectores de fecha
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const applyButton = document.getElementById('applyDateRange');
+
+        // Establecer fechas iniciales (todo el rango)
+        const minDate = dataDates[0];
+        const maxDate = dataDates[dataDates.length - 1];
+        
+        // Formatear fechas para los inputs
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Inicializar con todo el rango
+        startDateInput.value = formatDateForInput(minDate);
+        endDateInput.value = formatDateForInput(maxDate);
+        
+        // Función para filtrar datos por rango de fechas
+        function filterDataByDateRange(start, end) {
+            const filteredIndices = [];
+            
+            dataDates.forEach((date, index) => {
+                if (date >= start && date <= end) {
+                    filteredIndices.push(index);
+                }
+            });
+            
+            return {
+                labels: filteredIndices.map(i => labels[i]),
+                portfolioData: filteredIndices.map(i => portfolioValueData[i]),
+                investmentData: filteredIndices.map(i => investmentValueData[i]),
+                profitLossData: filteredIndices.map(i => profitLossData[i])
+            };
+        }
+        
+        // Función para actualizar el gráfico con datos filtrados
+        function updateChartWithDateRange(start, end) {
+            const filteredData = filterDataByDateRange(start, end);
+            
+            portfolioChart.data.labels = filteredData.labels;
+            portfolioChart.data.datasets[0].data = filteredData.portfolioData;
+            portfolioChart.data.datasets[1].data = filteredData.investmentData;
+            portfolioChart.data.datasets[2].data = filteredData.profitLossData;
+            
+            // Recalcular min/max para escalas
+            portfolioChart.options.scales.y.suggestedMin = Math.min(...filteredData.portfolioData) * 0.9;
+            portfolioChart.options.scales.y.suggestedMax = Math.max(...filteredData.portfolioData) * 1.05;
+            portfolioChart.options.scales.y1.suggestedMin = Math.min(...filteredData.profitLossData) * 1.2;
+            portfolioChart.options.scales.y1.suggestedMax = Math.max(...filteredData.profitLossData) * 1.2;
+            
+            portfolioChart.update();
+        }
+        
+        // Evento para aplicar rango de fechas
+        applyButton.addEventListener('click', function() {
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+            
+            if (startDate > endDate) {
+                alert('La fecha de inicio debe ser anterior a la fecha de fin');
+                return;
+            }
+            
+            updateChartWithDateRange(startDate, endDate);
+            setActivePreset('custom');
+        });
+        
+        // Configurar presets de fechas
+        function setActivePreset(presetId) {
+            document.querySelectorAll('.date-presets button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeButton = document.getElementById(`preset-${presetId}`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+        
+        // Agregar eventos a los botones de presets
+        document.getElementById('preset-1m').addEventListener('click', function() {
+            const endDate = new Date(maxDate);
+            const startDate = new Date(endDate);
+            startDate.setMonth(startDate.getMonth() - 1);
+            
+            startDateInput.value = formatDateForInput(startDate);
+            endDateInput.value = formatDateForInput(endDate);
+            
+            updateChartWithDateRange(startDate, endDate);
+            setActivePreset('1m');
+        });
+        
+        document.getElementById('preset-3m').addEventListener('click', function() {
+            const endDate = new Date(maxDate);
+            const startDate = new Date(endDate);
+            startDate.setMonth(startDate.getMonth() - 3);
+            
+            startDateInput.value = formatDateForInput(startDate);
+            endDateInput.value = formatDateForInput(endDate);
+            
+            updateChartWithDateRange(startDate, endDate);
+            setActivePreset('3m');
+        });
+        
+        document.getElementById('preset-6m').addEventListener('click', function() {
+            const endDate = new Date(maxDate);
+            const startDate = new Date(endDate);
+            startDate.setMonth(startDate.getMonth() - 6);
+            
+            startDateInput.value = formatDateForInput(startDate);
+            endDateInput.value = formatDateForInput(endDate);
+            
+            updateChartWithDateRange(startDate, endDate);
+            setActivePreset('6m');
+        });
+        
+        document.getElementById('preset-ytd').addEventListener('click', function() {
+            const endDate = new Date(maxDate);
+            const startDate = new Date(currentYear, 0, 1); // 1 de enero del año actual
+            
+            startDateInput.value = formatDateForInput(startDate);
+            endDateInput.value = formatDateForInput(endDate);
+            
+            updateChartWithDateRange(startDate, endDate);
+            setActivePreset('ytd');
+        });
+        
+        document.getElementById('preset-all').addEventListener('click', function() {
+            startDateInput.value = formatDateForInput(minDate);
+            endDateInput.value = formatDateForInput(maxDate);
+            
+            updateChartWithDateRange(minDate, maxDate);
+            setActivePreset('all');
+        });
+
+        // Configuración para resaltado de áreas
+        let isHighlightMode = false;
+        let highlightStart = null;
+        let highlights = [];
+        const chartContainer = document.querySelector('.chart-container');
+        const highlightInfo = document.getElementById('highlightInfo');
+        
+        // Función para activar/desactivar modo resaltado
+        document.getElementById('startHighlight').addEventListener('click', function() {
+            isHighlightMode = !isHighlightMode;
+            this.textContent = isHighlightMode ? "Cancelar Resaltado" : "Iniciar Resaltado";
+            
+            if (isHighlightMode) {
+                highlightInfo.textContent = "Haz clic y arrastra para resaltar un área";
+                this.style.backgroundColor = '#dc3545';
+                this.style.color = 'white';
+                document.getElementById('portfolioChart').style.cursor = 'crosshair';
+            } else {
+                highlightInfo.textContent = "Para resaltar: Haz clic en \"Iniciar Resaltado\" y luego selecciona un área en el gráfico.";
+                this.style.backgroundColor = '';
+                this.style.color = '';
+                document.getElementById('portfolioChart').style.cursor = '';
+            }
+        });
+        
+        // Función para limpiar todos los resaltados
+        document.getElementById('clearHighlight').addEventListener('click', function() {
+            highlights.forEach(h => h.remove());
+            highlights = [];
+        });
+        
+        // Evento para capturar inicio del resaltado
+        document.getElementById('portfolioChart').addEventListener('mousedown', function(e) {
+            if (!isHighlightMode) return;
+            
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            highlightStart = x;
+            
+            // Crear elemento temporal para mostrar el área que se está seleccionando
+            const tempHighlight = document.createElement('div');
+            tempHighlight.className = 'highlighted-region';
+            tempHighlight.style.left = `${x}px`;
+            tempHighlight.style.top = '0';
+            tempHighlight.style.height = '100%';
+            tempHighlight.style.width = '0';
+            tempHighlight.id = 'tempHighlight';
+            chartContainer.appendChild(tempHighlight);
+        });
+        
+        // Evento para actualizar tamaño del resaltado durante el arrastre
+        document.addEventListener('mousemove', function(e) {
+            if (!isHighlightMode || highlightStart === null) return;
+            
+            const tempHighlight = document.getElementById('tempHighlight');
+            if (!tempHighlight) return;
+            
+            const rect = document.getElementById('portfolioChart').getBoundingClientRect();
+            const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            
+            const left = Math.min(highlightStart, x);
+            const width = Math.abs(x - highlightStart);
+            
+            tempHighlight.style.left = `${left}px`;
+            tempHighlight.style.width = `${width}px`;
+        });
+        
+        // Evento para finalizar el resaltado
+        document.addEventListener('mouseup', function() {
+            if (!isHighlightMode || highlightStart === null) return;
+            
+            const tempHighlight = document.getElementById('tempHighlight');
+            if (!tempHighlight) return;
+            
+            // Si el área es muy pequeña, no crear un resaltado
+            if (parseInt(tempHighlight.style.width) < 10) {
+                tempHighlight.remove();
+                highlightStart = null;
+                return;
+            }
+            
+            // Guardar el resaltado como permanente
+            tempHighlight.id = `highlight-${Date.now()}`;
+            highlights.push(tempHighlight);
+            
+            // Añadir botón para eliminar este resaltado
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.right = '5px';
+            closeBtn.style.top = '5px';
+            closeBtn.style.background = 'white';
+            closeBtn.style.border = '1px solid #ccc';
+            closeBtn.style.borderRadius = '50%';
+            closeBtn.style.width = '20px';
+            closeBtn.style.height = '20px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.pointerEvents = 'auto';
+            closeBtn.onclick = function(e) {
+                e.stopPropagation();
+                tempHighlight.remove();
+                highlights = highlights.filter(h => h !== tempHighlight);
+            };
+            tempHighlight.appendChild(closeBtn);
+            
+            highlightStart = null;
+        });
+        
+        // Toggle de visibilidad para las series
+        document.querySelectorAll('.visibility-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const datasetIndex = parseInt(this.getAttribute('data-series'));
+                const isVisible = !this.classList.contains('hidden');
+                
+                // Cambiar visibilidad en el gráfico
+                portfolioChart.setDatasetVisibility(datasetIndex, !isVisible);
+                portfolioChart.update();
+                
+                // Actualizar estado visual del botón
+                this.classList.toggle('hidden');
+            });
+        });
+        
+        // Modo comparación
+        document.getElementById('compareMode').addEventListener('click', function() {
+            this.classList.toggle('active');
+            const isCompareMode = this.classList.contains('active');
+            
+            if (isCompareMode) {
+                // Activar modo comparación
+                this.textContent = "Desactivar Comparación";
+                highlightInfo.textContent = "Modo comparación: Los resaltados ahora mostrarán estadísticas comparativas.";
+                
+                // Modificar los resaltados existentes para mostrar información de comparación
+                highlights.forEach(highlight => {
+                    updateHighlightWithComparison(highlight);
+                });
+            } else {
+                // Desactivar modo comparación
+                this.textContent = "Modo Comparación";
+                highlightInfo.textContent = "Para resaltar: Haz clic en \"Iniciar Resaltado\" y luego selecciona un área en el gráfico.";
+                
+                // Restaurar resaltados normales
+                highlights.forEach(highlight => {
+                    // Eliminar información de comparación si existe
+                    const infoBox = highlight.querySelector('.comparison-info');
+                    if (infoBox) infoBox.remove();
+                });
+            }
+        });
+        
+        // Función para actualizar un resaltado con información comparativa
+        function updateHighlightWithComparison(highlight) {
+            // Comprobar si ya tiene infoBox
+            let infoBox = highlight.querySelector('.comparison-info');
+            
+            if (!infoBox) {
+                // Crear caja de información
+                infoBox = document.createElement('div');
+                infoBox.className = 'comparison-info';
+                infoBox.style.position = 'absolute';
+                infoBox.style.bottom = '10px';
+                infoBox.style.left = '10px';
+                infoBox.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+                infoBox.style.padding = '8px';
+                infoBox.style.borderRadius = '4px';
+                infoBox.style.fontSize = '12px';
+                infoBox.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
+                infoBox.style.pointerEvents = 'auto';
+                
+                // Calcular métricas para el área resaltada
+                // En un caso real, aquí se analizarían los datos del gráfico
+                // que corresponden al área resaltada
+                
+                infoBox.innerHTML = `
+                    <strong>Comparación del periodo:</strong><br>
+                    Rendimiento: +5.2%<br>
+                    Ganancia: 1.200€<br>
+                    vs. Periodo anterior: +2.3%
+                `;
+                
+                highlight.appendChild(infoBox);
+            }
+        }
+        
+        // Resto del código existente...
+    </script>
+</body>
+</html>

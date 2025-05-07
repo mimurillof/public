@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 2.8: Previsualización de Simulaciones Interactivas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilos adicionales si son necesarios */
+        .slider-value {
+            min-width: 3em; /* Asegura espacio para el valor */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+
+        <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">Componente 2.8: Simulaciones Interactivas (Previsualización)</h1>
+        <p class="text-sm text-center text-gray-600 mb-6">Ajusta los parámetros para ver cómo podrían cambiar las proyecciones simuladas.</p>
+
+        <!-- Sección de Controles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label for="riskLevel" class="block text-sm font-medium text-gray-700">Nivel de Riesgo Deseado:</label>
+                <div class="flex items-center space-x-3 mt-1">
+                    <input type="range" id="riskLevel" name="riskLevel" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 slider-control">
+                    <span id="riskLevelValue" class="text-sm font-semibold text-blue-600 slider-value text-right">5</span>
+                </div>
+            </div>
+            <div>
+                <label for="monthlyContribution" class="block text-sm font-medium text-gray-700">Aportación Mensual (€):</label>
+                <input type="number" id="monthlyContribution" name="monthlyContribution" value="200" min="0" step="50" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm input-control">
+            </div>
+            <div>
+                <label for="inflationRate" class="block text-sm font-medium text-gray-700">Tasa de Inflación Anual (%):</label>
+                 <div class="flex items-center space-x-3 mt-1">
+                    <input type="range" id="inflationRate" name="inflationRate" min="0" max="5" value="2" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 slider-control">
+                    <span id="inflationRateValue" class="text-sm font-semibold text-blue-600 slider-value text-right">2.0%</span>
+                </div>
+            </div>
+             <div>
+                <label for="retirementYear" class="block text-sm font-medium text-gray-700">Año de Jubilación:</label>
+                <input type="number" id="retirementYear" name="retirementYear" value="2050" min="2025" max="2070" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm input-control">
+            </div>
+        </div>
+
+        <!-- Área de Visualización del Gráfico -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-gray-800">Proyección Simulada del Portafolio</h2>
+            <div class="bg-gray-50 p-4 rounded-md shadow-inner">
+                 <canvas id="simulationChart"></canvas>
+            </div>
+            <p class="text-xs text-center text-gray-500 mt-2">El gráfico se actualizará dinámicamente basado en tus selecciones (simulado en esta previsualización).</p>
+        </div>
+
+        <!-- Texto Explicativo y Advertencias -->
+        <div class="mt-8 p-4 border-l-4 border-yellow-400 bg-yellow-50">
+            <h3 class="text-md font-semibold text-yellow-800">Importante: Sobre las Simulaciones</h3>
+            <p class="text-sm text-yellow-700 mt-2">
+                Esta herramienta proporciona proyecciones basadas en modelos de simulación y los parámetros que tú seleccionas. Los resultados mostrados son estimaciones y <strong class="font-bold">no constituyen una garantía</strong> de rendimientos futuros.
+            </p>
+            <p class="text-sm text-yellow-700 mt-1">
+                Las simulaciones se basan en supuestos sobre el comportamiento del mercado y factores económicos que pueden no materializarse. Las inversiones conllevan riesgos, incluyendo la posible pérdida de capital. Consulta con un asesor financiero antes de tomar decisiones de inversión.
+            </p>
+             <p class="text-sm text-red-700 mt-3 font-semibold">
+                Nota de Previsualización: Esta es una demostración visual. La actualización dinámica del gráfico con datos reales requiere conexión a un sistema de simulación backend, que no está activo en esta previsualización estática. Los cambios en el gráfico al mover los controles son solo ejemplos predefinidos.
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Inicialización y Lógica del Gráfico (Chart.js) ---
+        const ctx = document.getElementById('simulationChart').getContext('2d');
+        let simulationChart; // Variable para mantener la instancia del gráfico
+
+        // Datos de ejemplo iniciales
+        const initialData = {
+            labels: Array.from({ length: 10 }, (_, i) => `Año ${i + 1}`), // Eje X: Años
+            datasets: [{
+                label: 'Valor Proyectado (€)',
+                data: [1000, 1200, 1500, 1700, 2100, 2500, 2800, 3200, 3700, 4300], // Eje Y: Valores
+                borderColor: 'rgb(59, 130, 246)', // Azul
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        };
+
+        // Datos de ejemplo para simular actualización (cuando cambia un control)
+         const updatedDataHighRisk = {
+            labels: Array.from({ length: 10 }, (_, i) => `Año ${i + 1}`),
+            datasets: [{
+                label: 'Valor Proyectado (€) - Mayor Riesgo',
+                data: [1000, 1300, 1700, 1900, 2500, 3100, 3500, 4100, 4800, 5800], // Datos diferentes
+                borderColor: 'rgb(239, 68, 68)', // Rojo
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        };
+         const updatedDataLowRisk = {
+            labels: Array.from({ length: 10 }, (_, i) => `Año ${i + 1}`),
+            datasets: [{
+                label: 'Valor Proyectado (€) - Menor Riesgo',
+                data: [1000, 1150, 1350, 1500, 1700, 1950, 2150, 2400, 2700, 3100], // Datos más conservadores
+                borderColor: 'rgb(16, 185, 129)', // Verde
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        };
+
+        // Función para crear o actualizar el gráfico
+        function renderChart(data) {
+            if (simulationChart) {
+                simulationChart.destroy(); // Destruir gráfico anterior si existe
+            }
+            simulationChart = new Chart(ctx, {
+                type: 'line', // Tipo de gráfico
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Ajustar al contenedor
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                // Formatear como moneda (simplificado)
+                                callback: function(value, index, values) {
+                                    return '€' + value.toLocaleString('es-ES');
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += '€' + context.parsed.y.toLocaleString('es-ES');
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Renderizar el gráfico inicial al cargar la página
+        renderChart(initialData);
+
+        // --- Lógica de Controles ---
+
+        // Actualizar valor visible de los sliders
+        const riskSlider = document.getElementById('riskLevel');
+        const riskValueSpan = document.getElementById('riskLevelValue');
+        const inflationSlider = document.getElementById('inflationRate');
+        const inflationValueSpan = document.getElementById('inflationRateValue');
+
+        riskSlider.addEventListener('input', (event) => {
+            riskValueSpan.textContent = event.target.value;
+            // Simular actualización del gráfico basado en el riesgo
+            if (event.target.value > 7) {
+                 renderChart(updatedDataHighRisk);
+            } else if (event.target.value < 4) {
+                 renderChart(updatedDataLowRisk);
+            } else {
+                 renderChart(initialData); // Volver al inicial si está en rango medio
+            }
+            // En una implementación real, aquí se llamaría a la función que envía datos al backend
+            // simulateBackendCall();
+        });
+
+         inflationSlider.addEventListener('input', (event) => {
+            inflationValueSpan.textContent = parseFloat(event.target.value).toFixed(1) + '%';
+             // Aquí también se podría simular un cambio en el gráfico o llamar al backend
+             // simulateBackendCall();
+        });
+
+        // Añadir listeners a otros inputs si se quiere simular más interacción
+        const numberInputs = document.querySelectorAll('.input-control');
+        numberInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                console.log(`Input ${input.id} cambiado a: ${input.value}`);
+                // En una implementación real, llamar a la función de backend
+                // simulateBackendCall();
+                // Para la previsualización, podríamos cambiar a datos de ejemplo si quisiéramos
+                // renderChart(initialData); // O algún otro set de datos de ejemplo
+            });
+        });
+
+        // Función placeholder para la llamada al backend (no funcional aquí)
+        function simulateBackendCall() {
+             console.log("Simulando envío de parámetros al backend...");
+             // Aquí iría la lógica fetch() para enviar los valores actuales de los controles
+             // const params = {
+             //    risk: riskSlider.value,
+             //    contribution: document.getElementById('monthlyContribution').value,
+             //    inflation: inflationSlider.value,
+             //    retirement: document.getElementById('retirementYear').value
+             // };
+             // fetch('/api/simulate', { method: 'POST', body: JSON.stringify(params), ... })
+             //    .then(response => response.json())
+             //    .then(newChartData => {
+             //        renderChart(newChartData); // Actualizar gráfico con datos reales
+             //    })
+             //    .catch(error => console.error('Error en simulación:', error));
+
+             // Mostrar un indicador de carga mientras se espera la respuesta
+        }
+
+    </script>
+
+</body>
+</html>

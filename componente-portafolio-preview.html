@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 3.1: Resumen de Portafolio</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilo para asegurar que el canvas del gráfico no se desborde y mantenga su aspect ratio */
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 300px; /* Altura fija para el contenedor del gráfico */
+            width: 100%;   /* Ancho completo del contenedor padre */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px; /* Un poco más alto en pantallas medianas y grandes */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8 font-sans">
+
+    <div class="container mx-auto max-w-6xl bg-white shadow-xl rounded-lg p-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center sm:text-left">Resumen de Mi Portafolio</h1>
+
+        <div class="flex flex-col gap-6 lg:gap-8">
+            <!-- Sección Lista de Activos -->
+            <div class="w-full">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Mis Activos</h2>
+                <div id="lista-activos" class="space-y-3">
+                    <!-- Los activos se generarán aquí con JS -->
+                </div>
+            </div>
+
+            <!-- Sección Gráfico de Distribución -->
+            <div class="w-full mt-8 md:mt-0">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Distribución del Portafolio</h2>
+                <div class="bg-gray-50 p-4 rounded-lg shadow">
+                    <div class="chart-container mx-auto" style="max-width: 400px;">
+                        <canvas id="portfolioPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-8 text-center">
+            Los datos mostrados son únicamente con fines ilustrativos y no representan información financiera en tiempo real.
+        </p>
+    </div>
+
+    <script>
+        // Datos de Ejemplo para la Lista de Activos Agrupados por Tipo
+        const portfolioData = [
+            {
+                tipo: "Acciones",
+                activos: [
+                    {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 0 01-2-2z" /></svg>`,
+                        nombre: "Apple Inc. (AAPL)",
+                        precio: "$175.50",
+                        rendimientoValor: "+$2.50",
+                        rendimientoPorcentaje: "+1.40%",
+                        esPositivo: true
+                    },
+                    {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.737 11l-.546 2.727A2.25 2.25 0 009.441 16h5.118a2.25 2.25 0 002.249-2.273L16.263 11M12 16v4m-4-4v4m8-4v4" /></svg>`,
+                        nombre: "Tesla Inc. (TSLA)",
+                        precio: "$180.20",
+                        rendimientoValor: "+$1.15",
+                        rendimientoPorcentaje: "+0.64%",
+                        esPositivo: true
+                    },
+                    {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-3-5v5m-3-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`,
+                        nombre: "Microsoft Corp. (MSFT)",
+                        precio: "$420.30",
+                        rendimientoValor: "-$1.20",
+                        rendimientoPorcentaje: "-0.28%",
+                        esPositivo: false
+                    }
+                ]
+            },
+            {
+                tipo: "Bonos",
+                activos: [
+                    {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0H5z" /></svg>`,
+                        nombre: "Bonos del Tesoro EEUU 10Y",
+                        precio: "98.50 (Valor Nominal $100)", // Precio del bono
+                        tasaRendimiento: "4.25%", // Yield
+                        vencimiento: "15/05/2034",
+                        cambioDiaValor: "-0.05 ptos", // Cambio en puntos o precio
+                        cambioDiaPorcentaje: "-0.05%",
+                        esPositivo: false // Basado en el cambio del día
+                    }
+                ]
+            },
+            {
+                tipo: "Criptomonedas",
+                activos: [
+                    {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+                        nombre: "Ethereum (ETH)",
+                        precio: "$3,500.00",
+                        rendimientoValor: "+$150.00",
+                        rendimientoPorcentaje: "+4.48%",
+                        esPositivo: true
+                    },
+                    {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402-2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+                        nombre: "Bitcoin (BTC)",
+                        precio: "$65,120.50",
+                        rendimientoValor: "+$1,200.75",
+                        rendimientoPorcentaje: "+1.88%",
+                        esPositivo: true
+                    }
+                ]
+            },
+            {
+                tipo: "Fondos de Inversión / ETFs",
+                activos: [
+                    {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>`,
+                        nombre: "Fondo Indexado S&P 500 (VOO)",
+                        precio: "$450.75",
+                        rendimientoValor: "-$5.10",
+                        rendimientoPorcentaje: "-1.12%",
+                        esPositivo: false
+                    }
+                ]
+            },
+            {
+                tipo: "Bienes Raíces (REITs)",
+                activos: [
+                     {
+                        icono: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
+                        nombre: "REIT Global Inmobiliario (VNQ)",
+                        precio: "$85.60",
+                        dividendoYieldAnual: "3.50%", // Opcional, si se quiere mostrar
+                        rendimientoValor: "+$0.50",
+                        rendimientoPorcentaje: "+0.59%",
+                        esPositivo: true
+                    }
+                ]
+            }
+        ];
+
+        const listaActivosEl = document.getElementById('lista-activos');
+        listaActivosEl.innerHTML = ''; // Limpiar contenido previo
+
+        portfolioData.forEach((grupo, index) => {
+            // Contenedor para el grupo desplegable
+            const grupoContainer = document.createElement('div');
+            grupoContainer.classList.add('mb-3'); // Espacio entre grupos
+
+            // Determinar el rendimiento del grupo
+            let positivos = 0;
+            let negativos = 0;
+            grupo.activos.forEach(activo => {
+                if (activo.esPositivo) {
+                    positivos++;
+                } else {
+                    negativos++;
+                }
+            });
+
+            let grupoBgColor = 'bg-gray-200'; // Color por defecto (neutral/gris)
+            let grupoHoverBgColor = 'hover:bg-gray-300';
+
+            if (positivos > 0 && negativos === 0) { // Todos positivos
+                grupoBgColor = 'bg-green-200';
+                grupoHoverBgColor = 'hover:bg-green-300';
+            } else if (negativos > 0 && positivos === 0) { // Todos negativos
+                grupoBgColor = 'bg-red-200';
+                grupoHoverBgColor = 'hover:bg-red-300';
+            } else if (positivos > 0 || negativos > 0) { // Mixto
+                grupoBgColor = 'bg-yellow-200';
+                grupoHoverBgColor = 'hover:bg-yellow-300';
+            }
+
+            // Cabecera del desplegable (botón)
+            const grupoHeader = document.createElement('button');
+            grupoHeader.classList.add('flex', 'justify-between', 'items-center', 'w-full', 'p-3', grupoBgColor, grupoHoverBgColor, 'rounded-md', 'focus:outline-none', 'transition-colors', 'duration-150');
+            grupoHeader.setAttribute('aria-expanded', 'false');
+            grupoHeader.setAttribute('aria-controls', `grupo-contenido-${index}`);
+            grupoHeader.innerHTML = `
+                <h3 class="text-lg font-semibold text-gray-700">${grupo.tipo}</h3>
+                <svg class="w-5 h-5 text-gray-600 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            `;
+
+            // Contenido del desplegable (lista de activos)
+            const grupoContenido = document.createElement('div');
+            grupoContenido.id = `grupo-contenido-${index}`;
+            grupoContenido.classList.add('mt-2', 'space-y-2', 'hidden', 'pl-4', 'border-l-2'); // Oculto por defecto y con algo de indentación
+            
+            // Ajustar el color del borde izquierdo según el rendimiento del grupo
+            if (grupoBgColor === 'bg-green-200') {
+                grupoContenido.classList.add('border-green-400');
+            } else if (grupoBgColor === 'bg-red-200') {
+                grupoContenido.classList.add('border-red-400');
+            } else if (grupoBgColor === 'bg-yellow-200') {
+                grupoContenido.classList.add('border-yellow-400');
+            } else {
+                grupoContenido.classList.add('border-gray-300');
+            }
+
+            grupo.activos.forEach(activo => {
+                const rendimientoColor = activo.esPositivo ? 'text-green-600' : 'text-red-600';
+                let detallesExtra = '';
+
+                if (grupo.tipo === "Bonos") {
+                    detallesExtra = `
+                        <p class="text-xs sm:text-sm text-gray-500">Tasa Rend: ${activo.tasaRendimiento}</p>
+                        ${activo.vencimiento ? `<p class="text-xs sm:text-sm text-gray-500">Venc: ${activo.vencimiento}</p>` : ''}
+                    `;
+                } else if (grupo.tipo === "Bienes Raíces (REITs)" && activo.dividendoYieldAnual) {
+                     detallesExtra = `<p class="text-xs sm:text-sm text-gray-500">Div. Yield: ${activo.dividendoYieldAnual}</p>`;
+                }
+
+                const itemHtml = `
+                    <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
+                        <div class="flex items-center space-x-3 sm:space-x-4">
+                            <div class="flex-shrink-0">${activo.icono}</div>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-gray-800">${activo.nombre}</p>
+                                <p class="text-xs sm:text-sm text-gray-600">${activo.precio}</p>
+                                ${detallesExtra}
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-2">
+                            <p class="font-semibold text-sm sm:text-base ${rendimientoColor}">${grupo.tipo === "Bonos" ? activo.cambioDiaValor : activo.rendimientoValor}</p>
+                            <p class="text-xs sm:text-sm ${rendimientoColor}">${grupo.tipo === "Bonos" ? activo.cambioDiaPorcentaje : activo.rendimientoPorcentaje}</p>
+                        </div>
+                    </div>
+                `;
+                grupoContenido.innerHTML += itemHtml;
+            });
+
+            grupoHeader.addEventListener('click', () => {
+                const isExpanded = grupoHeader.getAttribute('aria-expanded') === 'true';
+                grupoHeader.setAttribute('aria-expanded', !isExpanded);
+                grupoContenido.classList.toggle('hidden');
+                const arrowIcon = grupoHeader.querySelector('svg');
+                arrowIcon.classList.toggle('rotate-180');
+            });
+            
+            // Por defecto, el primer grupo podría estar abierto
+            if (index === 0) {
+                grupoHeader.setAttribute('aria-expanded', 'true');
+                grupoContenido.classList.remove('hidden');
+                const arrowIcon = grupoHeader.querySelector('svg');
+                arrowIcon.classList.add('rotate-180');
+            }
+
+            grupoContainer.appendChild(grupoHeader);
+            grupoContainer.appendChild(grupoContenido);
+            listaActivosEl.appendChild(grupoContainer);
+        });
+
+        // Datos y Configuración para el Gráfico de Dona
+        const datosGrafico = {
+            labels: ['Acciones', 'Bonos', 'Bienes Raíces', 'Commodities', 'Efectivo', 'Fondos/ETFs'],
+            datasets: [{
+                label: 'Distribución del Portafolio',
+                data: [40, 20, 15, 10, 5, 10], // Asegúrate que sumen 100%
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',  // Rojo
+                    'rgba(54, 162, 235, 0.8)', // Azul
+                    'rgba(255, 206, 86, 0.8)', // Amarillo
+                    'rgba(75, 192, 192, 0.8)', // Verde Azulado
+                    'rgba(153, 102, 255, 0.8)',// Púrpura
+                    'rgba(255, 159, 64, 0.8)'  // Naranja
+                ],
+                borderColor: [ // Bordes para mejor separación visual
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1,
+                hoverOffset: 8 // Efecto al pasar el ratón
+            }]
+        };
+
+        const configGrafico = {
+            type: 'doughnut',
+            data: datosGrafico,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Importante para que el canvas se ajuste al div contenedor
+                cutout: '60%', // Para el efecto de dona, ajusta el tamaño del agujero central
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            boxWidth: 12,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        // Renderizar el Gráfico
+        const ctx = document.getElementById('portfolioPieChart').getContext('2d');
+        new Chart(ctx, configGrafico);
+    </script>
+
+</body>
+</html>

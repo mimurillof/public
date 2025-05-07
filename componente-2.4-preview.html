@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 2.4: Métricas Avanzadas (Preview)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <style>
+        body { font-family: sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <h1 class="text-2xl font-bold mb-6 text-center">Previsualización Layout: Componente 2.3 + Componente 2.4</h1>
+
+    <!-- Contenedor Padre Flexbox: Simula la fila completa (12 columnas) -->
+    <!-- Se apila en móvil (flex-col), fila en escritorio (md:flex-row) -->
+    <div class="flex flex-col md:flex-row gap-6 md:gap-8 max-w-7xl mx-auto">
+
+        <!-- Placeholder para Componente 2.3 (Gráfico + Narrativa) -->
+        <!-- Ocupa 7/12 en escritorio -->
+        <div class="md:w-7/12 bg-white p-6 rounded-lg shadow-md border border-dashed border-gray-400">
+            <h2 class="text-lg font-semibold mb-3 text-gray-500">Placeholder: Componente 2.3</h2>
+            <p class="text-gray-400">Aquí iría el gráfico de rendimiento y la narrativa automatizada (Componente 2.3).</p>
+            <div class="h-64 bg-gray-200 rounded mt-4 flex items-center justify-center text-gray-400">Área del Gráfico Simulado</div>
+        </div>
+
+        <!-- Componente 2.4: Métricas Avanzadas -->
+        <!-- Ocupa 5/12 en escritorio -->
+        <div class="md:w-5/12 bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-4">Componente 2.4: Métricas Avanzadas</h2>
+
+            <div class="space-y-4">
+                <!-- Métrica 1: Tracking Error -->
+                <div class="flex justify-between items-center border-b pb-2">
+                    <span class="text-sm font-medium text-gray-700">Tracking Error</span>
+                    <div class="text-right">
+                        <span class="text-sm font-semibold text-gray-900">1.85%</span>
+                        <p class="text-xs text-gray-500">vs Benchmark: 1.50%</p>
+                    </div>
+                </div>
+
+                <!-- Métrica 2: CVaR (95%) -->
+                <div class="flex justify-between items-center border-b pb-2">
+                    <span class="text-sm font-medium text-gray-700">CVaR (95%, 1 mes)</span>
+                     <div class="text-right">
+                        <span class="text-sm font-semibold text-gray-900">-4.20%</span>
+                    </div>
+                </div>
+
+                <!-- Métrica 3: Ratio de Sharpe -->
+                <div class="flex justify-between items-center border-b pb-2">
+                    <span class="text-sm font-medium text-gray-700">Ratio de Sharpe</span>
+                     <div class="text-right">
+                        <span class="text-sm font-semibold text-gray-900">0.75</span>
+                         <p class="text-xs text-gray-500">vs Grupo Pares: 0.68</p>
+                    </div>
+                </div>
+
+                 <!-- Métrica 4: Correlación con MSCI World -->
+                 <div class="flex justify-between items-center border-b pb-2">
+                    <span class="text-sm font-medium text-gray-700">Correlación (MSCI World)</span>
+                     <div class="text-right">
+                        <span class="text-sm font-semibold text-gray-900">0.88</span>
+                    </div>
+                </div>
+
+                <!-- Métrica 5: Exposición Factor 'Value' -->
+                 <div class="flex justify-between items-center pb-2">
+                    <span class="text-sm font-medium text-gray-700">Exposición Factor 'Value'</span>
+                     <div class="text-right">
+                        <span class="text-sm font-semibold text-gray-900">+0.15</span>
+                         <p class="text-xs text-gray-500">(Desviación vs Benchmark)</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

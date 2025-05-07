@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 1.5: Métricas Clave de Inversión</title>
+    <!-- React y ReactDOM CDN -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <!-- Babel CDN (para JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos adicionales si son necesarios */
+        .carousel-arrow {
+            background-color: rgba(209, 213, 219, 0.7); /* bg-gray-300 con opacidad */
+            border-radius: 50%;
+            padding: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .carousel-arrow:hover:not(:disabled) {
+            background-color: rgba(156, 163, 175, 0.9); /* bg-gray-400 con opacidad */
+        }
+        .carousel-arrow:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root" class="p-4 md:p-8 bg-gray-100 min-h-screen"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- Datos de Ejemplo ---
+        const metricsData = [
+            { id: 1, name: 'Retorno Total', value: '12.5%', change: { direction: 'up', value: '+1.2%' } },
+            { id: 2, name: 'Volatilidad', value: '8.2%', change: { direction: 'down', value: '-0.5%' } },
+            { id: 3, name: 'Sharpe Ratio', value: '1.15', change: { direction: 'up', value: '+0.05' } },
+            { id: 4, name: 'Max Drawdown', value: '-15.0%', change: { direction: 'down', value: '-2.0%' } },
+            { id: 5, name: 'Alpha', value: '2.1%', change: { direction: 'up', value: '+0.3%' } },
+            { id: 6, name: 'Beta', value: '0.95', change: { direction: 'neutral', value: '-' } },
+            { id: 7, name: 'Dividend Yield', value: '3.1%', change: { direction: 'down', value: '-0.5%' } },
+            { id: 8, name: 'Tracking Error', value: '1.5%', change: { direction: 'down', value: '-0.1%' } },
+            { id: 9, name: 'Information Ratio', value: '0.75', change: { direction: 'up', value: '+0.1' } },
+        ];
+
+        // --- Componente Tarjeta Individual ---
+        function MetricCard({ name, value, change }) {
+            const getChangeIndicator = () => {
+                if (!change) {
+                    return <span className="text-gray-500 text-sm">-</span>;
+                }
+                let colorClass = 'text-gray-500'; // Neutral por defecto
+                let arrow = '•'; // Neutral por defecto
+
+                if (change.direction === 'up') {
+                    colorClass = 'text-green-600';
+                    arrow = '▲';
+                } else if (change.direction === 'down') {
+                    colorClass = 'text-red-600';
+                    arrow = '▼';
+                }
+
+                return (
+                    <span className={`text-sm font-medium ${colorClass} flex items-center gap-1`}>
+                        <span>{arrow}</span>
+                        <span>{change.value}</span>
+                    </span>
+                );
+            };
+
+            return (
+                <div className="bg-white p-4 rounded-lg shadow border border-gray-200 flex-shrink-0 w-48 md:w-56 flex flex-col justify-between h-full">
+                    <div>
+                        <h3 className="text-sm font-medium text-gray-500 mb-1 truncate">{name}</h3>
+                        <p className="text-xl md:text-2xl font-semibold text-gray-800">{value}</p>
+                    </div>
+                    <div className="mt-2">
+                        {getChangeIndicator()}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- Componente Carrusel Principal ---
+        function InvestmentMetricsCarousel() {
+            const [startIndex, setStartIndex] = useState(0);
+            const cardsToShow = 5; // Número de tarjetas visibles a la vez en desktop
+            const cardWidthRem = 14; // Corresponde a w-56 (56 * 0.25 = 14rem)
+            const gapRem = 1; // Corresponde a gap-4 (4 * 0.25 = 1rem)
+            const totalShiftRem = cardWidthRem + gapRem; // Desplazamiento por tarjeta: 15rem
+
+            const totalCards = metricsData.length;
+            // El índice máximo al que podemos movernos es el que permite mostrar la última tarjeta
+            // en la última posición visible. Si tenemos 9 tarjetas y mostramos 5,
+            // los índices iniciales válidos son 0, 1, 2, 3, 4. maxStartIndex es 4.
+            // Se calcula como totalCards - cardsToShow.
+            const maxStartIndex = Math.max(0, totalCards - cardsToShow);
+
+            // Las condiciones para habilitar/deshabilitar los botones siguen siendo válidas
+            const canScrollLeft = startIndex > 0;
+            const canScrollRight = startIndex < maxStartIndex;
+
+            const scrollLeft = () => {
+                // Mueve hacia la izquierda por 1 tarjeta
+                setStartIndex(prevIndex => Math.max(0, prevIndex - 1));
+            };
+
+            const scrollRight = () => {
+                // Mueve hacia la derecha por 1 tarjeta
+                setStartIndex(prevIndex => Math.min(maxStartIndex, prevIndex + 1));
+            };
+
+            return (
+                <div>
+                    <div className="relative">
+                        {/* Contenedor que oculta las tarjetas fuera de vista */}
+                        {/* Mantenemos overflow-x-auto para scroll táctil en móvil */}
+                        <div className="overflow-hidden overflow-x-auto md:overflow-hidden">
+                            {/* Contenedor interior que se mueve con transform */}
+                            {/* Aplicamos transición para suavizar el movimiento */}
+                            <div
+                                className="flex gap-4 transition-transform duration-300 ease-in-out"
+                                // La fórmula de desplazamiento sigue siendo correcta: startIndex * shift por tarjeta
+                                style={{ transform: `translateX(-${startIndex * totalShiftRem}rem)` }}
+                            >
+                                {metricsData.map((metric) => (
+                                    <MetricCard
+                                        key={metric.id}
+                                        name={metric.name}
+                                        value={metric.value}
+                                        change={metric.change}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Botones de navegación (sin cambios aquí) */}
+                        <button
+                            onClick={scrollLeft}
+                            disabled={!canScrollLeft}
+                            className="carousel-arrow absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-4 z-10 hidden md:block"
+                            aria-label="Anterior"
+                        >
+                            {/* ... SVG icon ... */}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={scrollRight}
+                            disabled={!canScrollRight}
+                            className="carousel-arrow absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-4 z-10 hidden md:block"
+                            aria-label="Siguiente"
+                        >
+                            {/* ... SVG icon ... */}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                     {/* Mantenemos la indicación para móvil */}
+                     <p className="text-xs text-gray-500 mt-2 md:hidden">Desliza horizontalmente para ver más métricas.</p>
+                </div>
+            );
+        }
+
+        // --- Nuevo Componente Contenedor de Sección ---
+        function MetricsSection() {
+            return (
+                <div className="w-full max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
+                    <InvestmentMetricsCarousel />
+                </div>
+            );
+        }
+
+        // --- Componente Contenedor Principal (App) ---
+        function App() {
+            return (
+                <MetricsSection />
+            );
+        }
+
+        // --- Renderizar la aplicación ---
+        ReactDOM.render(
+            <App />,
+            document.getElementById('root')
+        );
+    </script>
+
+</body>
+</html>

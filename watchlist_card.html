@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchlist Card</title>
+
+    <!-- React, ReactDOM, Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Material UI -->
+    <script src="https://unpkg.com/@mui/material@5/umd/material-ui.development.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <!-- Usar Material Icons estándar -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #000000; /* Fondo negro */
+            color: #FFFFFF;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .watchlistContainer {
+            background-color: #1A1A1A; /* Fondo del contenedor */
+            padding: 15px 20px; /* Padding ajustado */
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px; /* Ancho típico para una tarjeta así */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .headerRow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px; /* Menos espacio */
+        }
+
+        .watchlistTitle {
+            font-size: 1.1rem; /* Tamaño ajustado */
+            font-weight: 500;
+            color: #FFFFFF;
+        }
+
+        /* Estilos Tabs */
+        .filterTabs .MuiTabs-indicator {
+            display: none; /* Ocultar indicador por defecto */
+        }
+
+        .filterTabs .MuiTab-root {
+            color: #B0B0B0;
+            border: 1px solid #424242;
+            padding: 4px 12px; /* Padding más pequeño */
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: none;
+            border-radius: 20px;
+            margin: 0 4px; /* Espacio entre tabs */
+            min-height: 30px; /* Altura reducida */
+            min-width: auto; /* Ancho automático */
+            opacity: 1; /* Asegurar opacidad completa */
+        }
+
+        .filterTabs .MuiTab-root:hover {
+            background-color: #2a2a2a;
+            border-color: #5a5a5a;
+            color: #FFFFFF;
+        }
+
+        .filterTabs .MuiTab-root.Mui-selected {
+            background-color: #007AFF; /* Azul brillante */
+            color: #FFFFFF;
+            border-color: #007AFF;
+        }
+
+        /* Estilos Lista */
+        .MuiList-root {
+            padding: 0; /* Sin padding por defecto */
+        }
+
+        .MuiListItem-root {
+            padding: 10px 0; /* Padding vertical, sin padding horizontal */
+            border-bottom: 1px solid #2C2C2E; /* Línea divisoria */
+            display: grid; /* Usar grid para layout */
+            grid-template-columns: auto 1fr auto; /* Icono | Texto | Precio/Cambio */
+            gap: 12px; /* Espacio entre columnas */
+            align-items: center;
+        }
+        .MuiListItem-root:last-child {
+            border-bottom: none; /* Sin borde en el último item */
+        }
+
+        .MuiListItemIcon-root {
+            min-width: auto; /* Ajustar ancho */
+            color: #B0B0B0; /* Color icono */
+            font-size: 1.8rem; /* Tamaño icono */
+            background-color: #2C2C2E; /* Fondo gris para icono */
+            border-radius: 50%; /* Hacerlo circular */
+            width: 36px; /* Tamaño fijo */
+            height: 36px; /* Tamaño fijo */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Estilo específico para imágenes si se usan */
+        .MuiListItemIcon-root img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+
+        .MuiListItemText-root {
+            margin: 0; /* Resetear margen */
+        }
+
+        .MuiListItemText-primary {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #FFFFFF;
+            line-height: 1.3; /* Ajustar interlineado */
+        }
+
+        .MuiListItemText-secondary {
+            font-size: 0.8rem;
+            color: #8A8A8E; /* Color grisáceo */
+            line-height: 1.3;
+        }
+        
+        /* Añadir estos estilos más específicos para sobreescribir Material UI */
+        .MuiListItemText-root .MuiTypography-colorTextSecondary,
+        [class*="-MuiTypography-root"][class*="-colorTextSecondary"],
+        .MuiListItemText-secondary {
+            color: #B0B0B0 !important; /* Color más claro para mayor contraste */
+        }
+
+        .priceChangeContainer {
+            text-align: right;
+        }
+
+        .itemPrice {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #FFFFFF;
+            display: block; /* Para que ocupe su línea */
+            margin-bottom: 2px; /* Pequeño espacio */
+        }
+
+        .itemChange {
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex; /* Para alinear icono y texto */
+            align-items: center;
+            justify-content: flex-end; /* Alinear a la derecha */
+        }
+        .itemChange .material-icons {
+            font-size: 1rem; /* Tamaño icono flecha */
+            margin-right: 2px;
+        }
+
+        .itemChangePositive {
+            color: #4CAF50; /* Verde */
+        }
+
+        .itemChangeNegative {
+            color: #FF5252; /* Rojo */
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .watchlistContainer {
+                padding: 10px 15px;
+            }
+            .headerRow {
+                flex-direction: column;
+                align-items: stretch; /* Ocupar ancho */
+                gap: 10px;
+            }
+            .filterTabs .MuiTabs-flexContainer {
+                justify-content: space-around; /* Distribuir tabs */
+            }
+             .filterTabs .MuiTab-root {
+                 margin: 0 2px;
+                 padding: 4px 8px;
+                 font-size: 0.7rem;
+             }
+            .MuiListItemText-primary, .itemPrice {
+                font-size: 0.9rem;
+            }
+            .MuiListItemText-secondary, .itemChange {
+                font-size: 0.75rem;
+            }
+            .MuiListItemIcon-root {
+                width: 32px;
+                height: 32px;
+                font-size: 1.5rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const {
+            Typography, Tabs, Tab, Box,
+            List, ListItem, ListItemIcon, ListItemText, Icon
+        } = MaterialUI;
+
+        // Iconos (Asegúrate que los nombres coincidan con Material Icons)
+        const ArrowUpwardIcon = () => <Icon className="material-icons" sx={{ fontSize: 'inherit' }}>arrow_upward</Icon>;
+        const ArrowDownwardIcon = () => <Icon className="material-icons" sx={{ fontSize: 'inherit' }}>arrow_downward</Icon>;
+
+        // --- Datos de Ejemplo ---
+        const initialWatchlistItems = [
+          { name: "Spotify", symbol: "NYSE SPOT", price: 230.50, change: 2.34, logoIcon: "music_note", type: 'viewed' }, // Usar icono MUI
+          { name: "Amazon", symbol: "NYSE AMZN", price: 185.10, change: -1.15, logoIcon: "shopping_bag", type: 'viewed' }, // Usar icono MUI
+          { name: "Tesla", symbol: "NASDAQ TSLA", price: 175.80, change: 3.10, logoIcon: "electric_car", type: 'gainer' },
+          { name: "Apple", symbol: "NASDAQ AAPL", price: 190.30, change: 0.85, logoIcon: "apple", type: 'gainer' },
+          { name: "Nio", symbol: "NYSE NIO", price: 4.50, change: -5.20, logoIcon: "ev_station", type: 'loser' },
+          { name: "Microsoft", symbol: "NASDAQ MSFT", price: 420.70, change: 1.50, logoIcon: "important_devices", type: 'viewed' },
+          { name: "Nvidia", symbol: "NASDAQ NVDA", price: 910.00, change: 4.55, logoIcon: "memory", type: 'gainer' },
+          { name: "Boeing", symbol: "NYSE BA", price: 178.20, change: -3.80, logoIcon: "flight", type: 'loser' },
+          // --- Nuevos ejemplos ---
+          { name: "Netflix", symbol: "NASDAQ NFLX", price: 615.30, change: 1.95, logoIcon: "theaters", type: 'gainer' },
+          { name: "AMD", symbol: "NASDAQ AMD", price: 160.50, change: -0.75, logoIcon: "developer_board", type: 'loser' },
+          { name: "Disney", symbol: "NYSE DIS", price: 105.10, change: 0.25, logoIcon: "movie", type: 'viewed' },
+          { name: "PayPal", symbol: "NASDAQ PYPL", price: 63.80, change: -2.10, logoIcon: "paypal", type: 'loser' },
+          { name: "Salesforce", symbol: "NYSE CRM", price: 270.90, change: 1.10, logoIcon: "cloud", type: 'gainer' },
+          { name: "Intel", symbol: "NASDAQ INTC", price: 30.50, change: -1.55, logoIcon: "memory", type: 'loser' },
+        ];
+
+        // --- Componente Principal ---
+        const WatchlistCard = () => {
+            const [selectedTab, setSelectedTab] = useState(0); // 0: Most Viewed, 1: Gainers, 2: Losers
+
+            const handleTabChange = (event, newValue) => {
+                setSelectedTab(newValue);
+            };
+
+            // Filtrar items basado en la pestaña seleccionada
+            const filteredItems = useMemo(() => {
+                switch (selectedTab) {
+                    case 1: // Gainers
+                        return initialWatchlistItems.filter(item => item.change > 0);
+                    case 2: // Losers
+                        return initialWatchlistItems.filter(item => item.change < 0);
+                    case 0: // Most Viewed (o todos si no hay tipo 'viewed')
+                    default:
+                         // Si hay items marcados como 'viewed', mostrarlos. Si no, mostrar todos.
+                         const viewedItems = initialWatchlistItems.filter(item => item.type === 'viewed');
+                         return viewedItems.length > 0 ? viewedItems : initialWatchlistItems;
+                }
+            }, [selectedTab]);
+
+            return (
+                <div className="watchlistContainer">
+                    <div className="headerRow">
+                        <Typography variant="h6" component="div" className="watchlistTitle">
+                            Watchlist
+                        </Typography>
+                        <Tabs
+                            value={selectedTab}
+                            onChange={handleTabChange}
+                            aria-label="Watchlist filter tabs"
+                            className="filterTabs"
+                            variant="scrollable" // Permitir scroll si no caben
+                            scrollButtons="auto" // Mostrar botones de scroll si es necesario
+                            allowScrollButtonsMobile // Mostrar botones en móvil
+                            sx={{ minHeight: '30px' }} // Ajustar altura mínima
+                        >
+                            <Tab label="Most Viewed" />
+                            <Tab label="Gainers" />
+                            <Tab label="Losers" />
+                        </Tabs>
+                    </div>
+
+                    <List>
+                        {filteredItems.map((item) => {
+                            const isPositive = item.change > 0;
+                            const ChangeIcon = isPositive ? ArrowUpwardIcon : ArrowDownwardIcon;
+                            return (
+                                <ListItem key={item.symbol}>
+                                    <ListItemIcon>
+                                        {/* Usar Icon de MUI */}
+                                        <Icon>{item.logoIcon || 'inventory_2'}</Icon>
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={item.name}
+                                        secondary={item.symbol}
+                                    />
+                                    <div className="priceChangeContainer">
+                                        <Typography variant="body1" component="span" className="itemPrice">
+                                            ${item.price.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            component="span"
+                                            className={`itemChange ${isPositive ? 'itemChangePositive' : 'itemChangeNegative'}`}
+                                        >
+                                            <ChangeIcon />
+                                            {Math.abs(item.change).toFixed(2)}%
+                                        </Typography>
+                                    </div>
+                                </ListItem>
+                            );
+                        })}
+                    </List>
+                </div>
+            );
+        };
+
+        // Renderizar componente
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(
+            <React.StrictMode>
+                <WatchlistCard />
+            </React.StrictMode>
+        );
+    </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Card</title>
+
+  <!-- React + Material UI via CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@mui/material@5/umd/material-ui.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script> <!-- Babel es necesario para JSX -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> <!-- Carga de Material Icons -->
+
+  <!-- Estilos personalizados (responsive) -->
+  <style>
+    body {
+      background-color: #121212; /* Fondo oscuro para ver la tarjeta */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .cardContainer {
+      background-color: #1A1A1A; /* Fondo como en la imagen */
+      color: white;
+      padding: 2rem 2.5rem 2.5rem 2.5rem; /* Padding aumentado ligeramente */
+      border-radius: 16px; /* Radio de borde ligeramente mayor */
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start; /* Alineación a la izquierda */
+      width: 100%;
+      max-width: 450px; /* Ancho máximo aumentado */
+      font-family: 'Roboto', sans-serif; /* Asegurar fuente */
+    }
+
+    .headerRow {
+      display: flex;
+      justify-content: space-between; /* Asegura máxima separación */
+      align-items: center; /* Alinear verticalmente */
+      width: 100%; /* Asegura que ocupe todo el ancho */
+      margin-bottom: 2rem; /* Más espacio debajo del header */
+    }
+
+    /* Contenedor para los botones para agruparlos a la derecha */
+    .headerButtons {
+        display: flex;
+        align-items: center;
+    }
+
+    .totalAmount {
+      font-size: 2.8rem; /* Tamaño aumentado */
+      font-weight: 500; /* Peso ajustado */
+      margin-bottom: 0.7rem; /* Espacio ajustado */
+      width: 100%; /* Ocupar todo el ancho */
+      text-align: left; /* Asegurar alineación izquierda */
+    }
+
+    .returnInfo { /* Nueva clase para la info de retorno */
+      color: rgba(255, 255, 255, 0.7); /* Color grisáceo */
+      display: flex;
+      align-items: center;
+      font-size: 1rem; /* Tamaño aumentado */
+      width: 100%; /* Ocupar todo el ancho */
+      text-align: left; /* Asegurar alineación izquierda */
+    }
+
+    .returnInfo .material-icons { /* Estilo para el icono check */
+      font-size: 1.2rem; /* Tamaño aumentado */
+      color: #4CAF50; /* Verde */
+      margin: 0 0.4rem; /* Espacio ajustado */
+    }
+
+    .returnPercentage { /* Clase para el porcentaje */
+      color: #4CAF50; /* Verde */
+      margin-right: 0.6rem; /* Espacio ajustado */
+    }
+
+    .returnAbsolute { /* Clase para el valor absoluto */
+       /* Mismo color grisáceo que 'Return' */
+    }
+
+
+    /* Estilos para botones y iconos de Material UI */
+    .headerRow .MuiButton-outlinedInherit {
+      color: rgba(255, 255, 255, 0.8) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      text-transform: none !important; /* Evitar mayúsculas */
+      margin-right: 4px !important; /* Espacio reducido */
+      border-radius: 20px !important; /* Más redondeado */
+      min-width: 40px !important;
+      padding: 4px 10px !important; /* Padding ajustado */
+      font-size: 0.8rem !important;
+    }
+    .headerRow .MuiIconButton-colorInherit {
+      color: rgba(255, 255, 255, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border-radius: 50% !important; /* Circular */
+      padding: 4px !important; /* Padding ajustado */
+    }
+     .headerRow .MuiIconButton-colorInherit .material-icons {
+        font-size: 1.2rem; /* Icono más pequeño */
+     }
+
+
+    @media (max-width: 600px) {
+      .cardContainer {
+        padding: 1.5rem 2rem 2rem 2rem; /* Ajuste para móvil */
+        max-width: 100%; /* Ocupar ancho completo en móvil */
+      }
+      .totalAmount {
+        font-size: 2.2rem; /* Ajuste para móvil */
+      }
+      .returnInfo {
+        font-size: 0.9rem; /* Ajuste para móvil */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Importar componentes de Material UI
+    const { Typography, Button, IconButton } = MaterialUI;
+    // Importar iconos
+    const ArrowDropDownIcon = () => <span className="material-icons">arrow_drop_down</span>;
+    const CheckIcon = () => <span className="material-icons">check_circle_outline</span>; // Icono de check
+
+    // Componente reutilizable
+    const TotalHoldingCard = ({ total, percentageChange, absoluteChange, isPositive = true }) => {
+      const changeColor = isPositive ? '#4CAF50' : '#f44336'; // Verde o Rojo
+      // Icono check siempre verde según la imagen
+      const CheckCircleIcon = () => <span className="material-icons" style={{ color: '#4CAF50', fontSize: '1.1rem', verticalAlign: 'middle', marginRight: '4px' }}>check_circle</span>;
+
+
+      return (
+        <div className="cardContainer">
+          <div className="headerRow">
+            <Typography variant="body2" component="div" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              Total Holding
+            </Typography>
+            {/* Agrupar botones en un div */}
+            <div className="headerButtons">
+              {/* Botón "6M" como en la imagen */}
+              <Button variant="outlined" color="inherit" size="small">6M</Button>
+              <IconButton color="inherit" size="small">
+                <ArrowDropDownIcon />
+              </IconButton>
+            </div>
+          </div>
+          {/* Total Amount alineado a la izquierda por defecto en el contenedor flex-start */}
+          <Typography variant="h4" component="div" className="totalAmount">${total}</Typography>
+          {/* Información de retorno */}
+          <div className="returnInfo">
+            <span>Return</span>
+            <CheckCircleIcon />
+            <span className="returnPercentage" style={{ color: changeColor }}>
+              {isPositive ? '+' : '-'}{Math.abs(percentageChange)}%
+            </span>
+            <span className="returnAbsolute">
+              (${absoluteChange})
+            </span>
+          </div>
+        </div>
+      );
+    };
+
+    // Renderizar componente
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container); // Usar createRoot para React 18
+    root.render(
+      <React.StrictMode>
+        {/* Pasar los nuevos props */}
+        <TotalHoldingCard
+          total="12,304.11"
+          percentageChange="3.65"
+          absoluteChange="5.30"
+          isPositive={true}
+        />
+      </React.StrictMode>
+    );
+  </script>
+</body>
+</html>

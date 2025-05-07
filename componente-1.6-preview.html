@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 1.6: Composición Actual del Portafolio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            background-color: #f0f4f8;
+            padding: 2rem;
+        }
+        /* Contenedor para el canvas para controlar mejor el tamaño */
+        .chart-container {
+            position: relative;
+            height: 40vh; /* Altura inicial */
+            width: 100%;   /* Ancho completo del contenedor padre */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 50vh; /* Más altura en pantallas medianas+ */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Contenedor Principal del Componente -->
+    <!-- Ancho simulando ~6 columnas: w-full en pequeño, md:w-7/12, lg:w-6/12 -->
+    <div class="w-full md:w-7/12 lg:w-6/12 mx-auto bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 text-center">
+            Componente 1.6: Composición Actual del Portafolio
+        </h2>
+
+        <!-- Contenedor del Canvas para Chart.js -->
+        <div class="chart-container">
+            <canvas id="portfolioCompositionChart"></canvas>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Datos de Ejemplo Actualizados ---
+        const portfolioData = [
+            { claseActivo: 'Acciones Tecnológicas', porcentaje: 0.35, valorNominal: 35000 },
+            { claseActivo: 'Acciones Sector Bancario', porcentaje: 0.20, valorNominal: 20000 },
+            { claseActivo: 'Oro (ETF)', porcentaje: 0.15, valorNominal: 15000 },
+            { claseActivo: 'Bonos Corporativos High Yield', porcentaje: 0.20, valorNominal: 20000 },
+            { claseActivo: 'Liquidez (Efectivo)', porcentaje: 0.10, valorNominal: 10000 },
+        ];
+
+        // --- Preparación de Datos para Chart.js ---
+        const labels = portfolioData.map(item => item.claseActivo);
+        const percentages = portfolioData.map(item => item.porcentaje * 100); // Convertir a porcentaje para mostrar
+        const nominalValues = portfolioData.map(item => item.valorNominal);
+
+        // Paleta de colores (puedes personalizarla)
+        const backgroundColors = [
+            '#4F46E5', // Indigo
+            '#10B981', // Emerald
+            '#F59E0B', // Amber
+            '#6366F1', // Violet
+            '#EC4899', // Pink
+            '#84CC16', // Lime
+        ];
+
+        // --- Configuración de Chart.js ---
+        const ctx = document.getElementById('portfolioCompositionChart').getContext('2d');
+        const config = {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Composición del Portafolio',
+                    data: percentages, // Usamos los porcentajes para el tamaño de los segmentos
+                    backgroundColor: backgroundColors.slice(0, portfolioData.length),
+                    borderColor: '#ffffff', // Borde blanco entre segmentos
+                    borderWidth: 2,
+                    // Pasamos los datos completos para usarlos en los tooltips
+                    nominalValues: nominalValues,
+                    percentages: portfolioData.map(item => item.porcentaje) // Guardamos el decimal original
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Permite controlar altura con CSS
+                cutout: '60%', // Hace que sea una dona en lugar de una torta
+                plugins: {
+                    legend: {
+                        position: 'bottom', // Posición de la leyenda
+                        labels: {
+                            padding: 20, // Espacio para la leyenda
+                            boxWidth: 12,
+                            usePointStyle: true,
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 12 },
+                        padding: 10,
+                        boxPadding: 4,
+                        callbacks: {
+                            // Personalizar el texto del tooltip
+                            label: function(context) {
+                                const label = context.label || '';
+                                const dataset = context.dataset;
+                                const dataIndex = context.dataIndex;
+
+                                const percentageValue = dataset.data[dataIndex]; // El valor % usado para el gráfico
+                                const nominalValue = dataset.nominalValues[dataIndex]; // El valor nominal original
+
+                                // Formatear valores
+                                const formattedPercentage = percentageValue.toFixed(1) + '%';
+                                const formattedNominal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(nominalValue); // Ajusta la moneda si es necesario
+
+                                return `${label}: ${formattedPercentage} (${formattedNominal})`;
+                            }
+                        }
+                    }
+                },
+                // Opcional: Animación al cargar
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        };
+
+        // --- Crear el Gráfico ---
+        new Chart(ctx, config);
+    </script>
+
+</body>
+</html>

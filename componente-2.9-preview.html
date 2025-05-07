@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 2.9: Previsualización de Acciones y Feedback (IA)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Estilos para el estado seleccionado del feedback */
+        .feedback-btn.selected {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+        }
+        .feedback-btn.selected.thumb-up {
+             background-color: #16a34a; /* green-600 */
+             color: white;
+        }
+         .feedback-btn.selected.thumb-down {
+             background-color: #dc2626; /* red-600 */
+             color: white;
+        }
+        /* Ocultar inicialmente el área de comentarios */
+        #feedbackCommentSection {
+            display: none;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+         #feedbackCommentSection.visible {
+            display: block;
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 p-8 font-sans">
+
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+
+        <h1 class="text-xl font-bold mb-6 text-center text-gray-800">Componente 2.9: Acciones y Feedback (IA)</h1>
+
+        <!-- Contenedor de Acciones y Feedback -->
+        <div class="space-y-6">
+
+            <!-- Botones de Acción -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <button id="downloadBtn" class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition duration-150 ease-in-out">
+                    <i class="fas fa-download mr-2"></i>
+                    Descargar Reporte
+                </button>
+                <button id="shareBtn" class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md shadow-sm transition duration-150 ease-in-out">
+                    <i class="fas fa-share-alt mr-2"></i>
+                    Compartir
+                </button>
+            </div>
+
+            <!-- Separador -->
+            <hr class="my-6">
+
+            <!-- Sección de Feedback -->
+            <div class="text-center">
+                <p class="text-md font-semibold text-gray-700 mb-3">¿Te fue útil este análisis de IA?</p>
+                <div class="flex justify-center gap-4 mb-4">
+                    <button id="thumbUpBtn" data-feedback="positive" class="feedback-btn thumb-up inline-flex items-center justify-center w-12 h-12 border border-gray-300 rounded-full text-gray-500 hover:bg-green-100 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                        <i class="fas fa-thumbs-up text-xl"></i>
+                    </button>
+                    <button id="thumbDownBtn" data-feedback="negative" class="feedback-btn thumb-down inline-flex items-center justify-center w-12 h-12 border border-gray-300 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                        <i class="fas fa-thumbs-down text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Área de Comentario (inicialmente oculta) -->
+                <div id="feedbackCommentSection" class="mt-4">
+                    <label for="feedbackComment" class="block text-sm font-medium text-gray-700 mb-1">Comentario (opcional):</label>
+                    <textarea id="feedbackComment" name="feedbackComment" rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Danos más detalles..."></textarea>
+                    <button id="sendCommentBtn" class="mt-3 inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md shadow-sm transition duration-150 ease-in-out">
+                        Enviar Comentario
+                    </button>
+                </div>
+
+                 <!-- Mensaje de agradecimiento (inicialmente oculto) -->
+                 <div id="feedbackThanks" class="mt-4 text-green-600 font-medium" style="display: none;">
+                    ¡Gracias por tu feedback!
+                 </div>
+            </div>
+
+        </div>
+
+         <!-- Nota de Previsualización -->
+        <div class="mt-8 p-3 border-l-4 border-blue-400 bg-blue-50 text-sm text-blue-700">
+            <p><strong class="font-semibold">Nota de Previsualización:</strong> Este es un diseño interactivo de ejemplo. Las acciones de Descargar, Compartir y el envío real de Feedback requieren integración con el backend y no están funcionales en esta vista estática.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Simulación de Acciones ---
+        const downloadBtn = document.getElementById('downloadBtn');
+        const shareBtn = document.getElementById('shareBtn');
+
+        downloadBtn.addEventListener('click', () => {
+            console.log("Simulación: Iniciar descarga del reporte...");
+            alert("Simulación: Descarga iniciada (acción no funcional en previsualización).");
+        });
+
+        shareBtn.addEventListener('click', () => {
+            console.log("Simulación: Abrir opciones para compartir o copiar enlace...");
+            alert("Simulación: Compartir activado (acción no funcional en previsualización).");
+            // Podría intentar copiar un enlace de ejemplo al portapapeles si se desea
+            // navigator.clipboard.writeText('https://ejemplo.com/reporte/123').then(() => alert('Enlace copiado (simulado)'));
+        });
+
+        // --- Lógica de Feedback ---
+        const thumbUpBtn = document.getElementById('thumbUpBtn');
+        const thumbDownBtn = document.getElementById('thumbDownBtn');
+        const feedbackCommentSection = document.getElementById('feedbackCommentSection');
+        const feedbackCommentInput = document.getElementById('feedbackComment');
+        const sendCommentBtn = document.getElementById('sendCommentBtn');
+        const feedbackThanks = document.getElementById('feedbackThanks');
+        let selectedFeedback = null;
+
+        function handleFeedbackClick(button, feedbackType) {
+            // Deseleccionar el otro botón
+            const otherButton = feedbackType === 'positive' ? thumbDownBtn : thumbUpBtn;
+            otherButton.classList.remove('selected', 'thumb-up', 'thumb-down');
+
+            // Seleccionar el botón clickeado
+            button.classList.add('selected');
+             if (feedbackType === 'positive') {
+                button.classList.add('thumb-up');
+                button.classList.remove('thumb-down');
+            } else {
+                 button.classList.add('thumb-down');
+                 button.classList.remove('thumb-up');
+            }
+
+            selectedFeedback = feedbackType;
+            console.log(`Feedback seleccionado: ${selectedFeedback}`);
+
+            // Mostrar sección de comentarios y ocultar agradecimiento previo
+            feedbackCommentSection.classList.add('visible');
+            feedbackThanks.style.display = 'none';
+
+            // Simular envío de feedback básico (sin comentario aún)
+            // En una app real, podrías enviar el feedback aquí o esperar al comentario
+            // sendFeedbackToBackend(selectedFeedback, null);
+             console.log("Simulación: Feedback básico enviado al backend.");
+             // Mostrar agradecimiento temporalmente
+             showThanksMessage();
+
+        }
+
+        thumbUpBtn.addEventListener('click', () => handleFeedbackClick(thumbUpBtn, 'positive'));
+        thumbDownBtn.addEventListener('click', () => handleFeedbackClick(thumbDownBtn, 'negative'));
+
+        sendCommentBtn.addEventListener('click', () => {
+            const comment = feedbackCommentInput.value.trim();
+            if (!selectedFeedback) {
+                alert("Por favor, selecciona primero si el análisis fue útil o no (👍/👎).");
+                return;
+            }
+            if (comment) {
+                console.log(`Simulación: Enviando feedback (${selectedFeedback}) con comentario: "${comment}"`);
+                // En una app real, enviar feedback + comentario
+                // sendFeedbackToBackend(selectedFeedback, comment);
+                 feedbackCommentInput.value = ''; // Limpiar campo
+                 feedbackCommentSection.classList.remove('visible'); // Ocultar sección
+                 showThanksMessage(); // Mostrar agradecimiento
+            } else {
+                 alert("El comentario está vacío.");
+                 // O simplemente enviar el feedback básico si ya no se hizo
+                 console.log(`Simulación: Enviando feedback (${selectedFeedback}) sin comentario.`);
+                 // sendFeedbackToBackend(selectedFeedback, null);
+                 feedbackCommentSection.classList.remove('visible');
+                 showThanksMessage();
+            }
+             // Deseleccionar botones después de enviar comentario
+             // thumbUpBtn.classList.remove('selected', 'thumb-up');
+             // thumbDownBtn.classList.remove('selected', 'thumb-down');
+             // selectedFeedback = null; // Resetear selección
+        });
+
+         function showThanksMessage() {
+            feedbackThanks.style.display = 'block';
+            // Opcional: ocultar después de unos segundos
+            // setTimeout(() => {
+            //     feedbackThanks.style.display = 'none';
+            // }, 3000);
+         }
+
+        // Función placeholder para enviar datos al backend (no funcional aquí)
+        function sendFeedbackToBackend(feedbackType, comment) {
+            console.log(`Enviando al backend: Tipo=${feedbackType}, Comentario=${comment || 'N/A'}`);
+            // const reportId = 'report-xyz'; // Obtener ID del reporte actual
+            // fetch('/api/feedback', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ reportId, feedback: feedbackType, comment })
+            // })
+            // .then(response => response.json())
+            // .then(data => console.log('Feedback enviado con éxito:', data))
+            // .catch(error => console.error('Error enviando feedback:', error));
+        }
+
+    </script>
+
+</body>
+</html>

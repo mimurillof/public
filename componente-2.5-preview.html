@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 2.5: Previsualización Gráfico Predictivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilo adicional si es necesario, aunque se prioriza Tailwind */
+        body { font-family: sans-serif; background-color: #f0f4f8; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <div class="container mx-auto">
+        <!-- Contenedor del componente simulando 6-7 columnas en pantallas medianas/grandes -->
+        <div class="bg-white p-6 rounded-lg shadow-lg md:w-8/12 lg:w-7/12 mx-auto">
+
+            <h2 class="text-xl font-semibold mb-1 text-gray-800">Componente 2.5: Gráficos Predictivos</h2>
+            <p class="text-sm text-gray-500 mb-4">Proyección Futura del Portafolio (Ejemplo)</p>
+
+            <!-- Etiqueta clara de Proyección -->
+            <div class="text-center mb-2">
+                <span class="inline-block bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">
+                    PROYECCIÓN BASADA EN IA
+                </span>
+            </div>
+
+            <!-- Contenedor del Gráfico -->
+            <div class="relative h-64 md:h-80 mb-4">
+                <canvas id="projectionChart"></canvas>
+            </div>
+
+            <!-- Explicación de la Incertidumbre -->
+            <div class="text-center text-xs text-gray-600 mb-6 px-4">
+                <p><span class="font-semibold">Área Sombreada:</span> Representa el rango probable de resultados (ej. intervalo de confianza del 90%) según el modelo predictivo. Las proyecciones no son garantías de rendimiento futuro.</p>
+            </div>
+
+            <!-- Explicación del Modelo (Placeholder) -->
+            <div class="text-sm text-gray-700 border-t pt-4 mt-4">
+                <h4 class="font-semibold mb-1">Sobre esta Proyección:</h4>
+                <p class="text-xs">
+                    Esta visualización se genera utilizando un modelo de [Tipo de Modelo, ej. Simulación de Monte Carlo] basado en [Supuestos Clave, ej. datos históricos, volatilidad esperada, aportaciones futuras]. Los resultados son estimaciones y están sujetos a la incertidumbre inherente de los mercados y los modelos predictivos.
+                </p>
+            </div>
+
+            <!-- Controles de Supuestos (Estructura Estática - Opcional) -->
+            <div class="mt-6 border-t pt-4">
+                <h4 class="font-semibold mb-3 text-gray-700">Ajustar Supuestos (Ejemplo Estático):</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <label for="aportacion" class="block text-gray-600 mb-1">Aportación Anual (€):</label>
+                        <input type="range" id="aportacion" name="aportacion" min="0" max="10000" value="2000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <span class="text-xs text-gray-500">Valor actual: 2000 €</span>
+                    </div>
+                    <div>
+                        <label for="volatilidad" class="block text-gray-600 mb-1">Volatilidad Esperada:</label>
+                        <select id="volatilidad" name="volatilidad" class="w-full p-2 border border-gray-300 rounded text-xs">
+                            <option value="baja">Baja</option>
+                            <option value="media" selected>Media</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </div>
+                </div>
+                 <p class="text-xs text-gray-500 mt-3 italic">(Nota: En esta previsualización, los controles no actualizan el gráfico).</p>
+            </div>
+
+        </div><!-- Fin contenedor componente -->
+    </div><!-- Fin container mx-auto -->
+
+    <script>
+        const ctx = document.getElementById('projectionChart').getContext('2d');
+
+        // Datos de ejemplo
+        const years = ['Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5', 'Año 6', 'Año 7', 'Año 8', 'Año 9', 'Año 10'];
+        const projectionLine = [10000, 11500, 13200, 15000, 17000, 19500, 22000, 25000, 28500, 32000]; // Proyección media
+        const lowerBound = [9000, 10000, 11000, 12500, 14000, 16000, 18000, 20500, 23000, 26000]; // Límite inferior (ej. percentil 10)
+        const upperBound = [11000, 13000, 15500, 17800, 20500, 23500, 26500, 30000, 34000, 39000]; // Límite superior (ej. percentil 90)
+
+        const projectionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Límite Inferior (Incertidumbre)',
+                        data: lowerBound,
+                        borderColor: 'rgba(173, 216, 230, 0.3)', // Azul claro transparente borde
+                        backgroundColor: 'rgba(173, 216, 230, 0.2)', // Azul claro más transparente relleno
+                        pointRadius: 0, // Sin puntos para las bandas
+                        borderWidth: 1,
+                        fill: '+1', // Rellena hasta el siguiente dataset (upperBound)
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Límite Superior (Incertidumbre)',
+                        data: upperBound,
+                        borderColor: 'rgba(173, 216, 230, 0.3)',
+                        backgroundColor: 'rgba(173, 216, 230, 0.2)',
+                        pointRadius: 0,
+                        borderWidth: 1,
+                        fill: false, // No rellenar este independientemente
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Proyección Media Estimada',
+                        data: projectionLine,
+                        borderColor: 'rgb(59, 130, 246)', // Azul principal
+                        backgroundColor: 'rgb(59, 130, 246)',
+                        borderWidth: 2,
+                        fill: false, // No rellenar la línea principal
+                        tension: 0.1 // Ligeramente curvada
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            filter: function(legendItem, chartData) {
+                                // Ocultar las leyendas de las bandas de incertidumbre
+                                return !legendItem.text.includes('Límite');
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Proyección del Valor del Portafolio (€)',
+                        font: {
+                            size: 16
+                        },
+                        color: '#333'
+                    },
+                    tooltip: {
+                        mode: 'index', // Muestra tooltips para todos los datasets en ese punto del eje X
+                        intersect: false, // El tooltip aparece al pasar sobre el eje X, no solo sobre el punto/línea
+                        callbacks: {
+                            // Personalizar el tooltip si es necesario
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Años Futuros'
+                        },
+                        grid: {
+                            display: false // Ocultar rejilla vertical
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Valor Proyectado (€)'
+                        },
+                        beginAtZero: false // Empezar eje Y cerca del valor mínimo para mejor visualización
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

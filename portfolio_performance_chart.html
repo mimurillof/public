@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Performance Chart</title>
+
+    <!-- React, ReactDOM, Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Material UI -->
+    <script src="https://unpkg.com/@mui/material@5/umd/material-ui.development.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Chart.js Adapter (si se usan fechas reales) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+
+    <style>
+        body {
+            background-color: #000000; /* Fondo negro como en la imagen */
+            color: #E0E0E0; /* Color de texto claro */
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .chartContainer {
+            background-color: #1A1A1A; /* Fondo del contenedor ligeramente más claro */
+            padding: 20px 25px; /* Padding ajustado */
+            border-radius: 16px; /* Bordes redondeados */
+            width: 100%;
+            max-width: 900px; /* Ancho máximo */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .headerRow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px; /* Espacio debajo del header */
+        }
+
+        .chartTitle {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #FFFFFF; /* Título blanco */
+        }
+
+        /* Estilos para ToggleButtonGroup y ToggleButton */
+        .timeframeButtons .MuiToggleButtonGroup-root {
+            background-color: #2a2a2a; /* Fondo del grupo de botones */
+            border-radius: 20px; /* Bordes redondeados para el grupo */
+            border: 1px solid #424242; /* Borde sutil */
+        }
+
+        .timeframeButtons .MuiToggleButton-root {
+            color: #B0B0B0; /* Color del texto del botón */
+            border: none; /* Sin bordes individuales */
+            padding: 4px 12px; /* Padding ajustado */
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase; /* Texto en mayúsculas */
+            border-radius: 20px; /* Redondeado individual para efecto hover/selected */
+            margin: 2px; /* Pequeño margen para separación visual */
+            min-width: 45px; /* Ancho mínimo */
+        }
+
+        .timeframeButtons .MuiToggleButton-root:hover {
+            background-color: #383838; /* Fondo al pasar el cursor */
+            color: #FFFFFF;
+        }
+
+        .timeframeButtons .MuiToggleButton-root.Mui-selected {
+            background-color: #007AFF; /* Azul brillante para seleccionado */
+            color: #FFFFFF; /* Texto blanco para seleccionado */
+            box-shadow: none;
+        }
+         .timeframeButtons .MuiToggleButton-root.Mui-selected:hover {
+             background-color: #0056b3; /* Azul más oscuro al pasar sobre seleccionado */
+         }
+
+        .chartWrapper {
+            height: 300px; /* Altura fija para el gráfico */
+            position: relative;
+        }
+
+        /* Media Query para pantallas más pequeñas */
+        @media (max-width: 600px) {
+            .chartContainer {
+                padding: 15px;
+            }
+            .headerRow {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px; /* Espacio entre título y botones en móvil */
+            }
+            .chartTitle {
+                font-size: 1rem;
+            }
+            .timeframeButtons .MuiToggleButton-root {
+                padding: 3px 8px;
+                font-size: 0.7rem;
+                min-width: 40px;
+            }
+            .chartWrapper {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { Typography, ToggleButtonGroup, ToggleButton } = MaterialUI;
+
+        // Datos de ejemplo (simulando rendimiento)
+        const generateData = (timeframe) => {
+            let labels = [];
+            let dataPoints = [];
+            const baseValue = 150000;
+            const volatility = 0.15; // 15% de volatilidad
+
+            let numPoints;
+            let startDate = new Date();
+
+            switch (timeframe) {
+                case '1D':
+                    numPoints = 24; // Horas
+                    startDate.setDate(startDate.getDate() - 1);
+                    labels = Array.from({ length: numPoints }, (_, i) => {
+                        const d = new Date(startDate);
+                        d.setHours(d.getHours() + i);
+                        return d;
+                    });
+                    break;
+                case '1W':
+                    numPoints = 7; // Días
+                    startDate.setDate(startDate.getDate() - 7);
+                    labels = Array.from({ length: numPoints }, (_, i) => {
+                        const d = new Date(startDate);
+                        d.setDate(d.getDate() + i);
+                        return d;
+                    });
+                    break;
+                case '1M':
+                    numPoints = 30; // Días
+                    startDate.setMonth(startDate.getMonth() - 1);
+                     labels = Array.from({ length: numPoints }, (_, i) => {
+                        const d = new Date(startDate);
+                        d.setDate(d.getDate() + i);
+                        return d;
+                    });
+                    break;
+                 case '6M': // Añadido 6M como en la imagen
+                    numPoints = 6; // Meses
+                    startDate.setMonth(startDate.getMonth() - 6);
+                     labels = Array.from({ length: numPoints }, (_, i) => {
+                        const d = new Date(startDate);
+                        d.setMonth(d.getMonth() + i);
+                        return d;
+                    });
+                    break;
+                case '1Y': // Añadido 1Y
+                    numPoints = 12; // Meses
+                    startDate.setFullYear(startDate.getFullYear() - 1);
+                     labels = Array.from({ length: numPoints }, (_, i) => {
+                        const d = new Date(startDate);
+                        d.setMonth(d.getMonth() + i);
+                        return d;
+                    });
+                    break;
+                default: // YTD o default
+                    numPoints = new Date().getMonth() + 1; // Meses hasta ahora
+                    startDate = new Date(new Date().getFullYear(), 0, 1); // Inicio del año
+                     labels = Array.from({ length: numPoints }, (_, i) => {
+                        const d = new Date(startDate);
+                        d.setMonth(d.getMonth() + i);
+                        return d;
+                    });
+            }
+
+            let currentValue = baseValue;
+            dataPoints = labels.map(() => {
+                const change = (Math.random() - 0.48) * baseValue * volatility / Math.sqrt(numPoints); // Simulación de cambio
+                currentValue += change;
+                return Math.max(0, currentValue); // Evitar valores negativos
+            });
+
+
+            return { labels, dataPoints };
+        };
+
+
+        const PerformanceChart = () => {
+            const [timeframe, setTimeframe] = useState('6M'); // Default a 6M como en la imagen
+            const chartRef = useRef(null);
+            const chartInstanceRef = useRef(null); // Para mantener la instancia del gráfico
+
+            const handleTimeframeChange = (event, newTimeframe) => {
+                if (newTimeframe !== null) {
+                    setTimeframe(newTimeframe);
+                }
+            };
+
+            useEffect(() => {
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    const { labels, dataPoints } = generateData(timeframe);
+
+                    // Crear el gradiente para el fondo
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, 'rgba(0, 122, 255, 0.4)'); // Azul más intenso arriba
+                    gradient.addColorStop(1, 'rgba(0, 122, 255, 0)'); // Transparente abajo
+
+                    // Destruir gráfico anterior si existe
+                    if (chartInstanceRef.current) {
+                        chartInstanceRef.current.destroy();
+                    }
+
+                    // Crear nuevo gráfico
+                    chartInstanceRef.current = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Portfolio Value',
+                                data: dataPoints,
+                                borderColor: '#007AFF', // Azul brillante
+                                borderWidth: 2,
+                                pointRadius: 0, // Sin puntos visibles
+                                pointHoverRadius: 6, // Punto al pasar el cursor
+                                pointHoverBackgroundColor: '#007AFF',
+                                pointHoverBorderColor: '#FFFFFF',
+                                pointHoverBorderWidth: 2,
+                                tension: 0.3, // Línea ligeramente curvada
+                                fill: true, // Habilitar relleno
+                                backgroundColor: gradient, // Usar el gradiente
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    type: 'time', // Usar escala de tiempo
+                                    time: {
+                                        unit: timeframe === '1D' ? 'hour' : (timeframe === '1W' || timeframe === '1M' ? 'day' : 'month'),
+                                        tooltipFormat: timeframe === '1D' ? 'MMM d, HH:mm' : 'MMM d, yyyy', // Formato tooltip
+                                        displayFormats: { // Formatos de visualización en el eje
+                                            hour: 'HH:mm',
+                                            day: 'MMM d',
+                                            month: 'MMM',
+                                            year: 'yyyy'
+                                        }
+                                    },
+                                    grid: {
+                                        display: false, // Sin rejilla vertical
+                                    },
+                                    ticks: {
+                                        color: '#8A8A8E', // Color de las etiquetas del eje X
+                                        maxRotation: 0,
+                                        autoSkip: true,
+                                        maxTicksLimit: 7 // Limitar número de etiquetas
+                                    },
+                                    border: {
+                                        display: false // Sin línea del eje X
+                                    }
+                                },
+                                y: {
+                                    grid: {
+                                        color: '#2C2C2E', // Color rejilla horizontal tenue
+                                        drawBorder: false,
+                                    },
+                                    ticks: {
+                                        color: '#8A8A8E', // Color de las etiquetas del eje Y
+                                        callback: function(value) {
+                                            if (value >= 1000000) return (value / 1000000) + 'M';
+                                            if (value >= 1000) return (value / 1000) + 'K';
+                                            return value;
+                                        },
+                                        maxTicksLimit: 5 // Limitar número de etiquetas
+                                    },
+                                    border: {
+                                        display: false // Sin línea del eje Y
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false // Ocultar leyenda
+                                },
+                                tooltip: {
+                                    enabled: true,
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: '#2C2C2E', // Fondo tooltip oscuro
+                                    titleColor: '#FFFFFF',
+                                    bodyColor: '#FFFFFF',
+                                    borderColor: '#424242',
+                                    borderWidth: 1,
+                                    padding: 10,
+                                    displayColors: false, // No mostrar el cuadro de color
+                                    callbacks: {
+                                        title: function(tooltipItems) {
+                                            // Formato de fecha como en la imagen
+                                            const date = new Date(tooltipItems[0].parsed.x);
+                                            return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                                        },
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                // Formato de moneda como en la imagen
+                                                label += '$' + context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            },
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            hover: {
+                                mode: 'nearest',
+                                intersect: true
+                            }
+                        }
+                    });
+                }
+
+                // Cleanup: destruir el gráfico al desmontar el componente
+                return () => {
+                    if (chartInstanceRef.current) {
+                        chartInstanceRef.current.destroy();
+                        chartInstanceRef.current = null;
+                    }
+                };
+            }, [timeframe]); // Re-ejecutar el efecto cuando cambie el timeframe
+
+            return (
+                <div className="chartContainer">
+                    <div className="headerRow">
+                        <Typography variant="h6" component="div" className="chartTitle">
+                            Portfolio Performance
+                        </Typography>
+                        <div className="timeframeButtons">
+                            <ToggleButtonGroup
+                                value={timeframe}
+                                exclusive
+                                onChange={handleTimeframeChange}
+                                aria-label="Timeframe"
+                                size="small"
+                            >
+                                <ToggleButton value="1D" aria-label="1 Day">1D</ToggleButton>
+                                <ToggleButton value="1W" aria-label="1 Week">1W</ToggleButton>
+                                <ToggleButton value="1M" aria-label="1 Month">1M</ToggleButton>
+                                <ToggleButton value="6M" aria-label="6 Months">6M</ToggleButton>
+                                <ToggleButton value="1Y" aria-label="1 Year">1Y</ToggleButton>
+                            </ToggleButtonGroup>
+                        </div>
+                    </div>
+                    <div className="chartWrapper">
+                        <canvas ref={chartRef}></canvas>
+                    </div>
+                </div>
+            );
+        };
+
+        // Renderizar componente
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(
+            <React.StrictMode>
+                <PerformanceChart />
+            </React.StrictMode>
+        );
+    </script>
+</body>
+</html>
