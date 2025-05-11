@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Askk AI - Bienvenido</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* bg-slate-900 */
+            color: #e2e8f0; /* text-slate-200 */
+        }
+        /* Estilo base para los íconos de Material Symbols */
+        .material-symbols-sharp {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 300, /* Lighter weight for a more modern feel */
+          'GRAD' 0,
+          'opsz' 24;
+        }
+        .feature-card-icon {
+            font-size: 2.5rem; /* text-4xl */
+            line-height: 1;
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 40;
+        }
+        /* Custom scrollbar (optional, for a more polished look in dark themes) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; /* slate-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; /* slate-600 */
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6">
+
+    <main class="w-full max-w-3xl mx-auto flex flex-col items-center">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-100 mb-3">Financial Agent</h1>
+            <p class="text-slate-400 text-base sm:text-lg">
+                Uses multiple sources and tools to Financial Magnament
+            </p>
+        </header>
+
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10 w-full">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-5 rounded-xl shadow-lg flex flex-col items-start h-full">
+                <span class="material-symbols-sharp feature-card-icon text-sky-400 mb-3">quick_reference_all</span>
+                <h3 class="text-lg font-semibold text-slate-100 mb-1">Financial Report Analysis</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Analyzes financial reports to provide insights.
+                </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-5 rounded-xl shadow-lg flex flex-col items-start h-full">
+                <span class="material-symbols-sharp feature-card-icon text-amber-400 mb-3">area_chart</span>
+                <h3 class="text-lg font-semibold text-slate-100 mb-1">Simulation and Forecasting</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Performs simulations and forecasts financial scenarios.
+                </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-5 rounded-xl shadow-lg flex flex-col items-start h-full">
+                <span class="material-symbols-sharp feature-card-icon text-purple-400 mb-3">dictionary</span>
+                <h3 class="text-lg font-semibold text-slate-100 mb-1">Financial Terms Explained</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Explains complex financial terms clearly.
+                </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-5 rounded-xl shadow-lg flex flex-col items-start h-full">
+                <span class="material-symbols-sharp feature-card-icon text-teal-400 mb-3">travel_explore</span>
+                <h3 class="text-lg font-semibold text-slate-100 mb-1">Latest market news</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Delivers up-to-date financial market news.
+                </p>
+            </div>
+        </section>
+
+        <section class="flex flex-wrap justify-center gap-2 mb-8">
+            <button class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium py-2 px-3 rounded-lg transition-colors">
+                Tell me about my portfolio!
+            </button>
+            <button class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium py-2 px-3 rounded-lg transition-colors">
+                Recommend new assets
+            </button>
+            <button class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium py-2 px-3 rounded-lg transition-colors">
+                How to diversify my portfolio?
+            </button>
+            <button class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium py-2 px-3 rounded-lg transition-colors">
+                What's the latest news?
+            </button>
+        </section>
+
+        <section class="w-full mt-auto pt-6">
+            <div class="relative flex items-center mb-3">
+                <input
+                    id="mainChatInput"
+                    type="text"
+                    placeholder="Chatea con la IA..."
+                    class="w-full p-4 pr-24 text-sm text-slate-100 bg-slate-700 border border-slate-600 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all placeholder-slate-400"
+                />
+                <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                    <button
+                        aria-label="Entrada de voz"
+                        title="Voz"
+                        class="p-2 text-slate-400 hover:text-sky-400 transition-colors rounded-md"
+                    >
+                        <span class="material-symbols-sharp text-2xl">mic</span>
+                    </button>
+                    <button
+                        aria-label="Adjuntar archivo"
+                        title="Adjuntar"
+                        class="p-2 text-slate-400 hover:text-sky-400 transition-colors rounded-md"
+                    >
+                        <span class="material-symbols-sharp text-2xl">attach_file</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-between items-center gap-3">
+                <!-- Botones eliminados -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Script para funcionalidad futura (ej. manejo de input, botones)
+        const mainChatInput = document.getElementById('mainChatInput');
+        const sendButton = document.getElementById('sendButton');
+
+        sendButton.addEventListener('click', () => {
+            sendMessage();
+        });
+
+        mainChatInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = mainChatInput.value.trim();
+            if (message) {
+                console.log('Mensaje enviado:', message);
+                // Aquí iría la lógica para procesar el mensaje
+                mainChatInput.value = ''; // Limpiar input después de enviar
+                // Podrías, por ejemplo, redirigir a una vista de chat o mostrar la respuesta aquí.
+                alert('Mensaje enviado (simulación): ' + message);
+            }
+        }
+
+        // Funcionalidad para los botones de sugerencia y otros (ejemplo)
+        document.querySelectorAll('section.flex-wrap button').forEach(button => {
+            button.addEventListener('click', () => {
+                mainChatInput.value = button.textContent.trim();
+                mainChatInput.focus();
+            });
+        });
+        // Añadir más lógica para "Saved prompts" y "Attach content" si es necesario
+    </script>
+
+</body>
+</html>
